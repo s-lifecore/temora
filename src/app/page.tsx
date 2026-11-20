@@ -10,6 +10,7 @@ import { errorText, saveSession } from "@/lib/client";
 import { DEFAULT_DESIGN, DESIGNS, type Design } from "@/lib/designs";
 import { formatDateTime, nextHour, toLocalInput } from "@/lib/time";
 import { SupportCard } from "./support-link";
+import { ThemeDecor } from "./theme-decor";
 
 export default function Home() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function Home() {
 
   return (
     <div data-design={design} className="min-h-screen">
+      <ThemeDecor design={design} />
       <main className="mx-auto max-w-xl px-4 py-10">
         <header className="mb-8">
           <p className="text-sm font-semibold text-accent">

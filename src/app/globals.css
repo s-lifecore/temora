@@ -249,3 +249,66 @@ body {
     display: none;
   }
 }
+
+/* テーマの飾りの絵（左右の余白・広い画面だけ） */
+.theme-decor {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .theme-decor {
+    display: block;
+    position: fixed;
+    bottom: 2rem;
+    width: min(220px, calc((100vw - 48rem) / 2 - 3rem));
+    pointer-events: none;
+    z-index: 0;
+  }
+  .theme-decor-left {
+    left: 2rem;
+  }
+  .theme-decor-right {
+    right: 2rem;
+  }
+  [data-design] > main {
+    position: relative;
+    z-index: 1;
+  }
+}
+.decor-float {
+  animation: decor-float 4s ease-in-out infinite;
+}
+.decor-delay {
+  animation-delay: -2s;
+}
+@keyframes decor-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.decor-steam {
+  animation: decor-steam 3s ease-in-out infinite;
+}
+@keyframes decor-steam {
+  50% {
+    opacity: 0.25;
+    transform: translateY(-4px);
+  }
+}
+.decor-twinkle {
+  animation: decor-twinkle 3s ease-in-out infinite;
+}
+@keyframes decor-twinkle {
+  50% {
+    opacity: 0.45;
+  }
+}
+.decor-glow {
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
+}
+@media (prefers-reduced-motion: reduce) {
+  .decor-float,
+  .decor-steam,
+  .decor-twinkle {
+    animation: none;
+  }
+}
