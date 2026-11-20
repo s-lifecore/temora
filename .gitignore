@@ -43,3 +43,6 @@ next-env.d.ts
 
 # convex local deployment state
 .convex/
+
+# editor swap files
+*.swp
