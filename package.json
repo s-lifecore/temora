@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:convex": "convex dev",
     "build": "next build",
-    "build:deploy": "convex deploy --cmd 'npm run build'",
+    "build:deploy": "convex deploy --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
