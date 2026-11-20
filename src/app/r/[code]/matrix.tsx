@@ -29,16 +29,26 @@ export function Matrix({
             <li key={id} className="rounded-xl border border-line p-3">
               <button className="text-left" onClick={() => setOpen(open === id ? null : id)}>
                 <span className="font-semibold">{idea.title}</span>
-                {idea.mine && <span className="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">あなたの案</span>}
-                {idea.parentId && <span className="ml-1.5 rounded bg-d/15 px-1.5 py-0.5 text-[10px] text-d">改訂版</span>}
-                {idea.summary && <span className="mt-0.5 block text-xs leading-relaxed text-muted">{idea.summary}</span>}
+                {idea.mine && (
+                  <span className="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">
+                    あなたの案
+                  </span>
+                )}
+                {idea.parentId && (
+                  <span className="ml-1.5 rounded bg-d/15 px-1.5 py-0.5 text-[10px] text-d">改訂版</span>
+                )}
+                {idea.summary && (
+                  <span className="mt-0.5 block text-xs leading-relaxed text-muted">{idea.summary}</span>
+                )}
               </button>
               <ul className="mt-2 grid grid-cols-2 gap-1.5">
                 {axes.map((a) => {
                   const m = markOf(id, a.id);
                   return (
                     <li key={a.id} className="flex items-center gap-2 rounded-lg bg-bg px-2 py-1.5 text-xs">
-                      <span className={`w-4 text-center text-base font-bold ${m ? COLOR[m.mark] : "text-muted"}`}>{m ? SYMBOL[m.mark] : "-"}</span>
+                      <span className={`w-4 text-center text-base font-bold ${m ? COLOR[m.mark] : "text-muted"}`}>
+                        {m ? SYMBOL[m.mark] : "-"}
+                      </span>
                       <span className={`min-w-0 leading-tight ${a.kind === "must" ? "text-accent" : ""}`}>
                         {a.label}
                         {a.ownerName && <span className="block text-[10px] text-muted">{a.ownerName}の条件</span>}
@@ -58,7 +68,10 @@ export function Matrix({
             <tr>
               <th className="w-[40%] border-b border-line pb-2 text-left text-xs font-semibold text-muted">案</th>
               {axes.map((a) => (
-                <th key={a.id} className="border-b border-line px-1 pb-2 text-center align-bottom text-xs font-semibold">
+                <th
+                  key={a.id}
+                  className="border-b border-line px-1 pb-2 text-center align-bottom text-xs font-semibold"
+                >
                   <span className={a.kind === "must" ? "text-accent" : ""}>{a.label}</span>
                   {a.ownerName && <span className="block font-normal text-muted">{a.ownerName}の条件</span>}
                 </th>
@@ -74,9 +87,17 @@ export function Matrix({
                   <td className="border-b border-line py-3 pr-3">
                     <button className="text-left" onClick={() => setOpen(open === id ? null : id)}>
                       <span className="font-semibold">{idea.title}</span>
-                      {idea.mine && <span className="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">あなたの案</span>}
-                      {idea.parentId && <span className="ml-1.5 rounded bg-d/15 px-1.5 py-0.5 text-[10px] text-d">改訂版</span>}
-                      {idea.summary && <span className="mt-0.5 block text-xs leading-relaxed text-muted">{idea.summary}</span>}
+                      {idea.mine && (
+                        <span className="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">
+                          あなたの案
+                        </span>
+                      )}
+                      {idea.parentId && (
+                        <span className="ml-1.5 rounded bg-d/15 px-1.5 py-0.5 text-[10px] text-d">改訂版</span>
+                      )}
+                      {idea.summary && (
+                        <span className="mt-0.5 block text-xs leading-relaxed text-muted">{idea.summary}</span>
+                      )}
                     </button>
                     {extra?.(id)}
                   </td>
@@ -123,7 +144,7 @@ function Detail({ view, ideaId, onClose }: { view: RoomView; ideaId: string; onC
           閉じる
         </button>
       </div>
-      <p className="mt-2 whitespace-pre-wrap leading-relaxed">{idea.body || "（説明なし）"}</p>
+      <p className="mt-2 leading-relaxed whitespace-pre-wrap">{idea.body || "（説明なし）"}</p>
       {parent && <p className="hint mt-2">元の案：{parent.title}</p>}
       <ul className="mt-3 space-y-1">
         {view.axes.map((a) => {

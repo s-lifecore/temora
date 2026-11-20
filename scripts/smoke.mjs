@@ -30,7 +30,8 @@ const host = await client.mutation(api.rooms.create, {
 const code = host.code;
 console.log("room", code);
 const people = [host];
-for (let i = 1; i < size; i++) people.push(await client.mutation(api.rooms.join, { code, name: `メンバー${"ABCDEFGH"[i]}` }));
+for (let i = 1; i < size; i++)
+  people.push(await client.mutation(api.rooms.join, { code, name: `メンバー${"ABCDEFGH"[i]}` }));
 const S = (p) => ({ code, token: p.token });
 
 const ideas = [
@@ -64,7 +65,8 @@ for (const [i, p] of people.entries()) {
 s = await waitPhase(S(host), ["feedback", "decided", "tie"]);
 console.log("round1 ->", s.room.phase, JSON.stringify(s.results.at(-1)?.counts));
 if (s.room.phase === "feedback") {
-  for (const p of people) await client.mutation(api.rooms.sendFeedback, { ...S(p), text: "もう少し小さく作れるなら賛成" });
+  for (const p of people)
+    await client.mutation(api.rooms.sendFeedback, { ...S(p), text: "もう少し小さく作れるなら賛成" });
   s = await waitPhase(S(host), ["voting"]);
   console.log("round", s.room.round, "候補:", s.room.shortlist.map(title).join(" / "));
   for (const [i, p] of people.entries()) {

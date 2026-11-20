@@ -42,7 +42,10 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold">{i.title}</p>
                   <div className="flex shrink-0 gap-1">
-                    <button className="btn-ghost px-2.5 py-1 text-xs" onClick={() => setDraft({ id: i.id, title: i.title, body: i.body })}>
+                    <button
+                      className="btn-ghost px-2.5 py-1 text-xs"
+                      onClick={() => setDraft({ id: i.id, title: i.title, body: i.body })}
+                    >
                       直す
                     </button>
                     <button
@@ -54,7 +57,7 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
                     </button>
                   </div>
                 </div>
-                {i.body && <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{i.body}</p>}
+                {i.body && <p className="mt-1 text-sm whitespace-pre-wrap text-muted">{i.body}</p>}
               </li>
             ))}
           </ul>
@@ -70,7 +73,9 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
             });
           }}
         >
-          <p className="text-sm font-semibold">{draft.id ? "案を直す" : ideas.length ? "別の案を追加する" : "案を出す"}</p>
+          <p className="text-sm font-semibold">
+            {draft.id ? "案を直す" : ideas.length ? "別の案を追加する" : "案を出す"}
+          </p>
           <input
             className="input bg-card"
             aria-label="案の名前"
@@ -111,14 +116,18 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
               </button>
             )}
           </div>
-          <p className="hint">AIで型にそろえると、全員の案が同じ書き方になり、書いた量の差で有利・不利が出にくくなります。結果は保存前に直せます。</p>
+          <p className="hint">
+            AIで型にそろえると、全員の案が同じ書き方になり、書いた量の差で有利・不利が出にくくなります。結果は保存前に直せます。
+          </p>
         </form>
       </section>
 
       <section className="card space-y-4">
         <div>
           <h2 className="font-bold">判断軸</h2>
-          <p className="hint mt-1">すべての案を、下の軸ごとに AI が ○（満たす）△（一部・不明）✕（満たさない）で照らします。</p>
+          <p className="hint mt-1">
+            すべての案を、下の軸ごとに AI が ○（満たす）△（一部・不明）✕（満たさない）で照らします。
+          </p>
         </div>
         {room.teamAxes.length > 0 && (
           <div>
@@ -160,7 +169,9 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
       <section className="card flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm">
           {me.ready ? (
-            <p className="font-semibold text-accent">提出済みです。全員がそろうか、締切になると AI の照合が始まります。</p>
+            <p className="font-semibold text-accent">
+              提出済みです。全員がそろうか、締切になると AI の照合が始まります。
+            </p>
           ) : (
             <p>案と条件を出し終えたら、提出してください。</p>
           )}
@@ -184,4 +195,3 @@ export function Collecting({ view, act }: { view: RoomView; act: Act }) {
     </div>
   );
 }
-

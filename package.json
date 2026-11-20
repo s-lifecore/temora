@@ -4,10 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:convex": "convex dev",
     "build": "next build",
+    "build:deploy": "convex deploy --cmd 'npm run build'",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p convex",
     "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "smoke": "node --env-file-if-exists=.env.local scripts/smoke.mjs"
   },
   "dependencies": {
@@ -25,6 +32,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.10.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
     "vitest": "^5.1.1"

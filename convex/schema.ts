@@ -33,7 +33,9 @@ export default defineSchema({
     phaseDeadline: v.optional(v.number()),
     tieIds: v.array(v.id("ideas")),
     decidedIdeaId: v.optional(v.id("ideas")),
-    decidedBy: v.optional(v.union(v.literal("approval"), v.literal("most"), v.literal("manual"), v.literal("roulette"))),
+    decidedBy: v.optional(
+      v.union(v.literal("approval"), v.literal("most"), v.literal("manual"), v.literal("roulette")),
+    ),
     modelUsed: v.optional(v.string()),
     aiError: v.optional(v.string()),
     aiAttempts: v.number(),

@@ -19,10 +19,7 @@ export function threshold(voters: number): number {
   return voters < 5 ? voters : Math.ceil((voters * 2) / 3);
 }
 
-export function buildAxes(
-  teamAxes: string[],
-  members: { id: string; must_haves: string[] }[],
-): Axis[] {
+export function buildAxes(teamAxes: string[], members: { id: string; must_haves: string[] }[]): Axis[] {
   const team: Axis[] = teamAxes.map((label, i) => ({ id: `t${i}`, label, kind: "team" }));
   const must: Axis[] = members.flatMap((m) =>
     m.must_haves.map((label, i) => ({ id: `m:${m.id}:${i}`, label, kind: "must" as const, ownerId: m.id })),

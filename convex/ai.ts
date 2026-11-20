@@ -38,7 +38,13 @@ async function call<T extends z.ZodType>(schema: T, prompt: string): Promise<{ d
 
 const message = (e: unknown) => (e instanceof Error ? e.message : "AI の処理に失敗しました");
 
-const AssistSchema = z.object({ title: z.string(), what: z.string(), who: z.string(), how: z.string(), risk: z.string() });
+const AssistSchema = z.object({
+  title: z.string(),
+  what: z.string(),
+  who: z.string(),
+  how: z.string(),
+  risk: z.string(),
+});
 
 const templated = (x: { what: string; who: string; how: string; risk: string }) =>
   [`何を作る: ${x.what}`, `誰のため: ${x.who}`, `どう作る: ${x.how}`, `不安な点: ${x.risk}`].join("\n");
@@ -121,7 +127,9 @@ export const judge = internalAction({
             `お題: ${input.theme || "（未設定）"}`,
             "",
             "<axes>",
-            ...input.axes.map((a, i) => `A${i + 1}: ${a.label}${a.kind === "must" ? "（メンバーの譲れない条件）" : ""}`),
+            ...input.axes.map(
+              (a, i) => `A${i + 1}: ${a.label}${a.kind === "must" ? "（メンバーの譲れない条件）" : ""}`,
+            ),
             "</axes>",
             "",
             "<ideas>",
@@ -149,7 +157,10 @@ export const judge = internalAction({
           items.push({
             ideaId,
             summary: it.summary,
-            marks: [...axisKey.values()].map((axisId) => ({ axisId, ...(marks.get(axisId) ?? { mark: "d" as Mark, reason: "判定なし" }) })),
+            marks: [...axisKey.values()].map((axisId) => ({
+              axisId,
+              ...(marks.get(axisId) ?? { mark: "d" as Mark, reason: "判定なし" }),
+            })),
           });
         }
         if (items.length !== input.ideas.length) throw new Error("AI がすべての案を判定しませんでした");
@@ -213,7 +224,8 @@ export const revise = internalAction({
         items = res.data.items
           .map((it) => ({ ideaId: ideaKey.get(it.idea), title: it.title, body: `${it.body}\n変えた点: ${it.change}` }))
           .filter((it): it is { ideaId: Id<"ideas">; title: string; body: string } => !!it.ideaId);
-        if (new Set(items.map((i) => i.ideaId)).size !== input.ideas.length) throw new Error("AI がすべての案を改訂しませんでした");
+        if (new Set(items.map((i) => i.ideaId)).size !== input.ideas.length)
+          throw new Error("AI がすべての案を改訂しませんでした");
       }
       await ctx.runMutation(internal.engine.applyRevision, { roomId, round, model, items });
     } catch (e) {

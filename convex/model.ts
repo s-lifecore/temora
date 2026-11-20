@@ -34,7 +34,10 @@ export async function sha256(input: string): Promise<string> {
 
 export function randomToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -67,16 +70,28 @@ export function requirePhase(room: Doc<"rooms">, ...phases: Doc<"rooms">["phase"
 }
 
 export const membersOf = (ctx: QueryCtx, roomId: Id<"rooms">) =>
-  ctx.db.query("members").withIndex("by_room", (q) => q.eq("roomId", roomId)).collect();
+  ctx.db
+    .query("members")
+    .withIndex("by_room", (q) => q.eq("roomId", roomId))
+    .collect();
 
 export const ideasOf = (ctx: QueryCtx, roomId: Id<"rooms">) =>
-  ctx.db.query("ideas").withIndex("by_room", (q) => q.eq("roomId", roomId)).collect();
+  ctx.db
+    .query("ideas")
+    .withIndex("by_room", (q) => q.eq("roomId", roomId))
+    .collect();
 
 export const votesOf = (ctx: QueryCtx, roomId: Id<"rooms">, round: number) =>
-  ctx.db.query("votes").withIndex("by_room_round", (q) => q.eq("roomId", roomId).eq("round", round)).collect();
+  ctx.db
+    .query("votes")
+    .withIndex("by_room_round", (q) => q.eq("roomId", roomId).eq("round", round))
+    .collect();
 
 export const feedbackOf = (ctx: QueryCtx, roomId: Id<"rooms">, round: number) =>
-  ctx.db.query("feedback").withIndex("by_room_round", (q) => q.eq("roomId", roomId).eq("round", round)).collect();
+  ctx.db
+    .query("feedback")
+    .withIndex("by_room_round", (q) => q.eq("roomId", roomId).eq("round", round))
+    .collect();
 
 export async function axesOf(ctx: QueryCtx, room: Doc<"rooms">) {
   const ms = (await membersOf(ctx, room._id)).filter((m) => room.participants.includes(m._id));
@@ -90,7 +105,13 @@ async function scheduleDeadline(ctx: MutationCtx, room: Doc<"rooms">, at: number
   await ctx.scheduler.runAt(at, internal.engine.deadline, { roomId: room._id, phase: room.phase, round: room.round });
 }
 
-export async function scheduleAi(ctx: MutationCtx, roomId: Id<"rooms">, phase: "judging" | "revising", round: number, delay = 0) {
+export async function scheduleAi(
+  ctx: MutationCtx,
+  roomId: Id<"rooms">,
+  phase: "judging" | "revising",
+  round: number,
+  delay = 0,
+) {
   await ctx.scheduler.runAfter(delay, phase === "judging" ? internal.ai.judge : internal.ai.revise, { roomId, round });
 }
 
@@ -98,7 +119,9 @@ export async function startJudging(ctx: MutationCtx, room: Doc<"rooms">): Promis
   const ideas = await ideasOf(ctx, room._id);
   if (ideas.length === 0) return false;
   const withIdeas = new Set(ideas.map((i) => i.memberId));
-  const participants = (await membersOf(ctx, room._id)).filter((m) => m.ready || withIdeas.has(m._id)).map((m) => m._id);
+  const participants = (await membersOf(ctx, room._id))
+    .filter((m) => m.ready || withIdeas.has(m._id))
+    .map((m) => m._id);
   await ctx.db.patch(room._id, { phase: "judging", participants, aiAttempts: 0, aiError: undefined });
   await scheduleAi(ctx, room._id, "judging", room.round);
   return true;
@@ -110,7 +133,11 @@ export async function maybeCloseCollecting(ctx: MutationCtx, room: Doc<"rooms">)
   if (ms.length >= 2 && ms.every((m) => m.ready)) await startJudging(ctx, room);
 }
 
-export async function openVoting(ctx: MutationCtx, room: Doc<"rooms">, judged: { ideaId: Id<"ideas">; marks: Record<string, "o" | "d" | "x"> }[]) {
+export async function openVoting(
+  ctx: MutationCtx,
+  room: Doc<"rooms">,
+  judged: { ideaId: Id<"ideas">; marks: Record<string, "o" | "d" | "x"> }[],
+) {
   const axes = await axesOf(ctx, room);
   const table: MarkTable = Object.fromEntries(judged.map((j) => [j.ideaId, j.marks]));
   const sl = shortlist(

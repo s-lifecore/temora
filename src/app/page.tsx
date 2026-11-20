@@ -23,8 +23,7 @@ export default function Home() {
     collectHours: 24,
     voteHours: 24,
   });
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
-    setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -53,12 +52,9 @@ export default function Home() {
           <p className="text-sm font-semibold text-accent">
             Temora <span className="font-normal text-muted">テモラ</span>
           </p>
-          <h1 className="mt-1 text-2xl font-bold leading-snug">
-            アイデアを持ち寄って、みんなでテーマを決める。
-          </h1>
+          <h1 className="mt-1 text-2xl leading-snug font-bold">アイデアを持ち寄って、みんなでテーマを決める。</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            各自が案と「譲れない条件」を出すと、AI が全案を同じ基準で ○△✕
-            に照らします。AI
+            各自が案と「譲れない条件」を出すと、AI が全案を同じ基準で ○△✕ に照らします。AI
             は推薦しません。候補を最大3つに絞り、どれにするかは全員の承認で決めます。集まれなくても、締切がくれば自動で進みます。
           </p>
         </header>
@@ -69,21 +65,17 @@ export default function Home() {
             className="flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (joinCode.trim())
-                router.push(`/r/${joinCode.trim().toUpperCase()}`);
+              if (joinCode.trim()) router.push(`/r/${joinCode.trim().toUpperCase()}`);
             }}
           >
             <input
-              className="input font-mono uppercase tracking-widest"
+              className="input font-mono tracking-widest uppercase"
               placeholder="会議コード（8文字）"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               maxLength={8}
             />
-            <button
-              className="btn shrink-0"
-              disabled={joinCode.trim().length !== 8}
-            >
+            <button className="btn shrink-0" disabled={joinCode.trim().length !== 8}>
               入る
             </button>
           </form>
@@ -149,19 +141,13 @@ export default function Home() {
                   <DesignSwatch design={d.id} />
                   <span className="mt-1.5 block font-semibold">
                     {d.label}
-                    {d.id === DEFAULT_DESIGN && (
-                      <span className="ml-1 text-xs font-normal text-muted">
-                        （標準）
-                      </span>
-                    )}
+                    {d.id === DEFAULT_DESIGN && <span className="ml-1 text-xs font-normal text-muted">（標準）</span>}
                   </span>
                   <span className="hint block leading-snug">{d.desc}</span>
                 </label>
               ))}
             </div>
-            <p className="hint mt-1.5">
-              参加者全員の画面がこのデザインになります。選ぶとこのページで試せます。
-            </p>
+            <p className="hint mt-1.5">参加者全員の画面がこのデザインになります。選ぶとこのページで試せます。</p>
           </fieldset>
           <div>
             <label className="label" htmlFor="f4">
@@ -173,9 +159,7 @@ export default function Home() {
               value={form.axes}
               onChange={(e) => set("axes", e.target.value)}
             />
-            <p className="hint mt-1">
-              各メンバーの「譲れない条件」は、参加したあとにそれぞれが追加します。
-            </p>
+            <p className="hint mt-1">各メンバーの「譲れない条件」は、参加したあとにそれぞれが追加します。</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -218,11 +202,7 @@ export default function Home() {
             <div className="grid gap-2 sm:grid-cols-2">
               {(
                 [
-                  [
-                    "roulette",
-                    "ルーレットで決める",
-                    "同数の案から公平にランダムで選ぶ",
-                  ],
+                  ["roulette", "ルーレットで決める", "同数の案から公平にランダムで選ぶ"],
                   ["manual", "ホストが決める", "同数の案の中からホストが選ぶ"],
                 ] as const
               ).map(([v, label, desc]) => (
@@ -241,9 +221,7 @@ export default function Home() {
                 </label>
               ))}
             </div>
-            <p className="hint mt-1.5">
-              結果を見てから選べないように、ここで先に決めておきます。
-            </p>
+            <p className="hint mt-1.5">結果を見てから選べないように、ここで先に決めておきます。</p>
           </fieldset>
           {error && <p className="text-sm text-x">{error}</p>}
           <button className="btn w-full" disabled={busy}>
@@ -347,11 +325,8 @@ function DesignSwatch({ design }: { design: Design }) {
           boxShadow: design === "fun" ? t.shadow : undefined,
         }}
       >
-        <span
-          className="block h-1.5 w-10 rounded-full"
-          style={{ background: t.fg, opacity: 0.7 }}
-        />
-        <span className="mt-1.5 flex items-center gap-1.5 text-sm font-bold leading-none">
+        <span className="block h-1.5 w-10 rounded-full" style={{ background: t.fg, opacity: 0.7 }} />
+        <span className="mt-1.5 flex items-center gap-1.5 text-sm leading-none font-bold">
           <span style={{ color: t.o }}>○</span>
           <span style={{ color: t.d }}>△</span>
           <span style={{ color: t.x }}>✕</span>

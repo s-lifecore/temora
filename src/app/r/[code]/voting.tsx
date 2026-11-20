@@ -24,9 +24,12 @@ export function Voting({ view, act }: { view: RoomView; act: Act }) {
 
       <section className="card space-y-4">
         <div>
-          <h2 className="font-bold">{room.round > 1 ? "改訂した候補" : "候補"}（{room.shortlist.length}案）</h2>
+          <h2 className="font-bold">
+            {room.round > 1 ? "改訂した候補" : "候補"}（{room.shortlist.length}案）
+          </h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            「これならいい」と思える案すべてに承認を付けてください。いくつ付けても構いません。AI は推薦していません。並びは ○ の多い順です。
+            「これならいい」と思える案すべてに承認を付けてください。いくつ付けても構いません。AI
+            は推薦していません。並びは ○ の多い順です。
           </p>
         </div>
         <Matrix
@@ -35,7 +38,12 @@ export function Voting({ view, act }: { view: RoomView; act: Act }) {
           extra={(id) =>
             participant && (
               <label className="mt-2 flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
-                <input type="checkbox" className="accent-[var(--accent)]" checked={picked.includes(id)} onChange={() => toggle(id)} />
+                <input
+                  type="checkbox"
+                  className="accent-[var(--accent)]"
+                  checked={picked.includes(id)}
+                  onChange={() => toggle(id)}
+                />
                 これならいい
               </label>
             )
@@ -66,7 +74,13 @@ export function Voting({ view, act }: { view: RoomView; act: Act }) {
                 }
               }}
             >
-              {sent ? "送信済み" : view.myVote ? "承認を送り直す" : picked.length ? `${picked.length}案を承認して送る` : "どれも承認せずに送る"}
+              {sent
+                ? "送信済み"
+                : view.myVote
+                  ? "承認を送り直す"
+                  : picked.length
+                    ? `${picked.length}案を承認して送る`
+                    : "どれも承認せずに送る"}
             </button>
             {view.myVote && <span className="hint">締切までは送り直せます。</span>}
             {me.isHost && (
@@ -83,7 +97,9 @@ export function Voting({ view, act }: { view: RoomView; act: Act }) {
 
       {room.excluded.length > 0 && (
         <details className="card text-sm">
-          <summary className="cursor-pointer font-semibold">譲れない条件で候補から外れた案（{room.excluded.length}案）</summary>
+          <summary className="cursor-pointer font-semibold">
+            譲れない条件で候補から外れた案（{room.excluded.length}案）
+          </summary>
           <ul className="mt-3 space-y-2">
             {room.excluded.map((ex) => {
               const idea = ideas.find((i) => i.id === ex.id);

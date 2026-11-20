@@ -62,7 +62,14 @@ export const applyJudgement = internalMutation({
     for (const it of items) {
       await ctx.db.patch(it.ideaId, { summary: it.summary });
       for (const m of it.marks) {
-        await ctx.db.insert("marks", { roomId, round, ideaId: it.ideaId, axisId: m.axisId, mark: m.mark, reason: m.reason });
+        await ctx.db.insert("marks", {
+          roomId,
+          round,
+          ideaId: it.ideaId,
+          axisId: m.axisId,
+          mark: m.mark,
+          reason: m.reason,
+        });
       }
     }
     await ctx.db.patch(roomId, { modelUsed: model });
@@ -121,7 +128,12 @@ export const applyRevision = internalMutation({
 });
 
 export const aiFailed = internalMutation({
-  args: { roomId: v.id("rooms"), phase: v.union(v.literal("judging"), v.literal("revising")), round: v.number(), error: v.string() },
+  args: {
+    roomId: v.id("rooms"),
+    phase: v.union(v.literal("judging"), v.literal("revising")),
+    round: v.number(),
+    error: v.string(),
+  },
   handler: async (ctx, { roomId, phase, round, error }) => {
     const room = await ctx.db.get(roomId);
     if (!room || room.phase !== phase || room.round !== round) return;

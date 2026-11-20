@@ -48,7 +48,8 @@ export const create = mutation({
     const axes = args.axes.map((a) => a.trim()).filter(Boolean);
     if (axes.length > 6) fail("判断軸は6つまでです");
     axes.forEach((a) => text(a, "判断軸", 40, 1));
-    if (args.collectHours < 1 || args.collectHours > 336 || args.voteHours < 1 || args.voteHours > 168) fail("期間の指定が正しくありません");
+    if (args.collectHours < 1 || args.collectHours > 336 || args.voteHours < 1 || args.voteHours > 168)
+      fail("期間の指定が正しくありません");
 
     let code = randomCode();
     for (let i = 0; i < 5; i++) {
@@ -335,7 +336,9 @@ export const view = query({
           author: decided && i.memberId ? (nameOf.get(i.memberId) ?? null) : null,
         })),
       marks: marks.map((m) => ({ ideaId: m.ideaId as string, axisId: m.axisId, mark: m.mark, reason: m.reason })),
-      myVote: (allVotes.find((x) => x.memberId === me._id && x.round === room.round)?.approved as string[] | undefined) ?? null,
+      myVote:
+        (allVotes.find((x) => x.memberId === me._id && x.round === room.round)?.approved as string[] | undefined) ??
+        null,
       results,
     };
   },

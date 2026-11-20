@@ -4,7 +4,12 @@ import { ConvexClientProvider } from "./convex-provider";
 import "./globals.css";
 
 const maru = Zen_Maru_Gothic({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-maru", display: "swap" });
-const mincho = Zen_Old_Mincho({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-mincho", display: "swap" });
+const mincho = Zen_Old_Mincho({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-mincho",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Temora",
