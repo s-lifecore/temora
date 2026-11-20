@@ -3,6 +3,7 @@ import { v, type ObjectType } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import {
+  AI_LIMIT_MESSAGE,
   AUTO_AI_ATTEMPTS,
   MANUAL_MODEL,
   HOUR,
@@ -17,7 +18,6 @@ import {
   maybeCloseFeedback,
   maybeCloseVoting,
   membersOf,
-  modelLabel,
   randomCode,
   openVoting,
   randomToken,
@@ -112,7 +112,7 @@ export const create = mutation({
     const planId = owner?.plan ?? DEFAULT_PLAN;
     const plan = planOf(planId);
     if ((await roomsCreatedToday(ctx, ownerId)) >= plan.roomsPerDay)
-      fail(`${plan.label}プランで会議を作れるのは1日${plan.roomsPerDay}つまでです。時間をおいてから作ってください`);
+      fail(`会議を作れるのは1日${plan.roomsPerDay}つまでです。時間をおいてから作ってください`);
     return createRoom(ctx, args, { id: ownerId, plan: planId });
   },
 });
@@ -129,7 +129,7 @@ export const myQuota = query({
     if (!userId) return null;
     const user = await ctx.db.get(userId);
     const plan = planOf(user?.plan);
-    return { plan: plan.label, used: await roomsCreatedToday(ctx, userId), limit: plan.roomsPerDay };
+    return { used: await roomsCreatedToday(ctx, userId), limit: plan.roomsPerDay };
   },
 });
 
@@ -397,8 +397,11 @@ export const view = query({
         tieIds: room.tieIds as string[],
         decidedIdeaId: room.decidedIdeaId ?? null,
         decidedBy: room.decidedBy ?? null,
-        model: room.modelUsed ?? modelLabel(),
-        aiError: room.aiError ?? null,
+        aiProblem: room.aiError
+          ? room.aiError === AI_LIMIT_MESSAGE
+            ? ("unavailable" as const)
+            : ("error" as const)
+          : null,
         aiNeedsRetry: (room.phase === "judging" || room.phase === "revising") && room.aiAttempts >= AUTO_AI_ATTEMPTS,
       },
       me: {

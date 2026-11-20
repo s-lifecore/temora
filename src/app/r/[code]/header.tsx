@@ -93,10 +93,6 @@ export function Header({ view }: { view: RoomView }) {
             {DEADLINE_LABEL[room.phase]} {formatDateTime(deadline)}（{remaining(deadline, now)}）
           </span>
         )}
-        <span>
-          AI判定: <span className="font-mono">{room.model}</span>
-          （全員共通・サーバーで実行）
-        </span>
       </div>
 
       <ul className="flex flex-wrap gap-1.5">

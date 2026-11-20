@@ -368,7 +368,7 @@ function SignInCard({ loading }: { loading: boolean }) {
     <section className="card space-y-3">
       <h2 className="font-bold">ホストとして会議を作る</h2>
       <p className="text-sm leading-relaxed text-muted">
-        会議を作るにはログインが必要です（AI の利用量を管理するため）。招待された人は、ログインしなくても参加できます。
+        会議を作るにはログインが必要です。招待された人は、ログインしなくても参加できます。
       </p>
       <button
         className="btn w-full"
@@ -405,7 +405,7 @@ function Account() {
         {me?.name ?? "ログイン中"}
         {quota && (
           <span className="ml-2 text-muted">
-            {quota.plan}プラン・今日作れる会議 あと{Math.max(0, quota.limit - quota.used)}/{quota.limit}
+            今日作れる会議 あと{Math.max(0, quota.limit - quota.used)}/{quota.limit}
           </span>
         )}
       </span>

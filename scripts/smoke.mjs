@@ -56,7 +56,6 @@ for (const [i, p] of people.entries()) {
 }
 
 let s = await waitPhase(S(host), ["voting"]);
-console.log("model:", s.room.model);
 console.log("axes:", s.axes.map((a) => a.label + (a.ownerName ? `(${a.ownerName})` : "")).join(" / "));
 const title = (id) => s.ideas.find((i) => i.id === id)?.title;
 for (const id of s.room.shortlist) {

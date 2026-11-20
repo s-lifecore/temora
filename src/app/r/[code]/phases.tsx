@@ -27,7 +27,10 @@ export function Working({ view, act }: { view: RoomView; act: Act }) {
       {room.aiNeedsRetry ? (
         <>
           <p className="font-semibold text-x">AI の処理が止まっています</p>
-          {room.aiError && <p className="text-sm text-muted">{room.aiError}</p>}
+          <p className="text-sm text-muted">
+            {room.aiProblem === "unavailable" ? "いまは AI を使えません。" : "時間をおいて、もう一度試してください。"}
+            {me.isHost && "ホストは手動で先に進めることもできます。"}
+          </p>
           {me.isHost ? (
             <div className="flex flex-wrap justify-center gap-2">
               <button className="btn" onClick={() => run(() => act.host("retry"))}>
@@ -54,12 +57,8 @@ export function Working({ view, act }: { view: RoomView; act: Act }) {
           <p className="font-semibold">
             {revising ? "集まった意見をもとに、候補を改訂しています" : "AI が全案を判断軸に照らしています"}
           </p>
-          <p className="text-sm text-muted">
-            全員の案を、同じモデル（
-            <span className="font-mono">{room.model}</span>
-            ）・同じ指示で、1回でまとめて判定します。誰の案かは AI に伝えていません。
-          </p>
-          {room.aiError && <p className="text-xs text-d">前回の失敗：{room.aiError}（自動でやり直しています）</p>}
+          <p className="text-sm text-muted">全員の案を同じ基準で照らしています。誰の案かは伏せています。</p>
+          {room.aiProblem && <p className="text-xs text-d">うまくいかなかったので、自動でやり直しています。</p>}
         </>
       )}
     </section>

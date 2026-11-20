@@ -20,8 +20,8 @@ export const aiDailyLimit = () => {
   const n = Number(raw);
   return raw && Number.isFinite(n) && n >= 0 ? n : 300;
 };
-export const AI_LIMIT_MESSAGE = "今日の AI の利用上限に達しました。ホストが手動で進められます";
-export const AI_LIMIT_ASSIST_MESSAGE = "今日の AI の利用上限に達しました。案は手で書いて出してください";
+export const AI_LIMIT_MESSAGE = "AI_DAILY_LIMIT";
+export const AI_LIMIT_ASSIST_MESSAGE = "いまは AI で整えられません。案は手で書いて出してください";
 
 const jstDay = (t = Date.now()) => new Date(t + 9 * HOUR).toISOString().slice(0, 10);
 
