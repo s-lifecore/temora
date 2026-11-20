@@ -321,6 +321,30 @@ body {
     opacity: 0.45;
   }
 }
+.decor-simple {
+  stroke: var(--fg);
+}
+.decor-fill-card {
+  fill: var(--card);
+}
+.decor-fill-soft {
+  fill: var(--accent-soft);
+}
+.decor-fill-ink {
+  fill: var(--fg);
+}
+.decor-accent {
+  stroke: var(--accent);
+}
+.decor-o {
+  stroke: var(--o);
+}
+.decor-d {
+  stroke: var(--d);
+}
+.decor-x {
+  stroke: var(--x);
+}
 .decor-glow {
   filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
 }

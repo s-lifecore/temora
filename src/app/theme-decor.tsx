@@ -1,10 +1,9 @@
 import type { Design } from "@/lib/designs";
 
-// テーマごとの飾りの絵。広い画面（パソコン）では左右の余白に、狭い画面（スマホなど）では最初のカードの上に小さく並べる
+// テーマごとの飾りの絵（すべてのテーマ・すべてのページ）。広い画面（パソコン）では左右の余白に、狭い画面（スマホなど）では最初のカードの上に小さく並べる
 
 export function ThemeDecor({ design }: { design: Design }) {
   const pair = DECOR[design];
-  if (!pair) return null;
   return (
     <>
       <div className="theme-decor theme-decor-left" aria-hidden>
@@ -28,7 +27,6 @@ export function ThemeDecorPeek({
   className?: string;
 }) {
   const pair = DECOR[design];
-  if (!pair) return null;
   return (
     <div className={`theme-decor-peek ${className}`} aria-hidden>
       {only !== "right" && <div>{pair.left}</div>}
@@ -200,7 +198,63 @@ function CoolConstellation() {
   );
 }
 
-const DECOR: Partial<Record<Design, { left: React.ReactNode; right: React.ReactNode }>> = {
+// シンプル：線は文字色、塗りはカード色と淡い差し色（ライト・ダークの両方に合わせる）
+function SimpleLaptop() {
+  return (
+    <svg
+      viewBox="0 0 220 320"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2.5"
+      className="decor-simple"
+    >
+      <g className="decor-float">
+        <rect x="118" y="70" width="70" height="44" rx="10" className="decor-fill-card" />
+        <path d="M134 114l-8 12 18-12" className="decor-fill-card" />
+        <path d="M136 92l9 9 18-18" className="decor-accent" strokeWidth="3.5" />
+      </g>
+      <path d="M40 320c0-56 22-92 60-92s60 36 60 92" className="decor-fill-soft" />
+      <circle cx="100" cy="186" r="28" className="decor-fill-card" />
+      <path
+        d="M72 180c2-20 14-32 30-32 14 0 26 10 26 26-14-2-26-8-32-18-6 10-14 18-24 24z"
+        className="decor-fill-ink"
+      />
+      <path d="M90 192c3 2 6 2 9 0M106 192c3 2 6 2 9 0" />
+      <path d="M58 262h92l-10 30H68z" className="decor-fill-card" />
+      <path d="M46 296h116" />
+    </svg>
+  );
+}
+
+function SimpleChecklist() {
+  return (
+    <svg
+      viewBox="0 0 220 320"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2.5"
+      className="decor-simple"
+    >
+      <rect x="50" y="110" width="120" height="200" rx="10" className="decor-fill-card" />
+      <rect x="82" y="100" width="56" height="22" rx="6" className="decor-fill-soft" />
+      <circle cx="78" cy="160" r="10" className="decor-o" strokeWidth="3" />
+      <path d="M100 160h50" />
+      <path d="M78 196l-11 18h22z" className="decor-d" strokeWidth="3" />
+      <path d="M100 205h50" />
+      <path d="M69 240l18 18M87 240l-18 18" className="decor-x" strokeWidth="3" />
+      <path d="M100 249h50" />
+      <g className="decor-float decor-delay">
+        <path d="M176 60l14 14-58 58-18 4 4-18z" className="decor-fill-soft" />
+        <path d="M168 68l14 14" />
+      </g>
+    </svg>
+  );
+}
+
+const DECOR: Record<Design, { left: React.ReactNode; right: React.ReactNode }> = {
+  simple: { left: <SimpleLaptop />, right: <SimpleChecklist /> },
   fun: { left: <FunThinker />, right: <FunNotes /> },
   calm: { left: <CalmReader />, right: <CalmPlant /> },
   cool: { left: <CoolStargazer />, right: <CoolConstellation /> },

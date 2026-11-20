@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { supportUrl } from "@/lib/support";
+import { ThemeDecor, ThemeDecorPeek } from "../theme-decor";
 
 export const metadata: Metadata = {
   title: "Temora を応援する",
@@ -26,7 +27,9 @@ export default function SupportPage() {
   const url = supportUrl();
   return (
     <div data-design="simple" className="min-h-screen">
+      <ThemeDecor design="simple" />
       <main className="mx-auto max-w-xl space-y-6 px-4 py-10">
+        <ThemeDecorPeek design="simple" className="-mb-6" />
         <header>
           <Link href="/" className="text-sm font-semibold text-accent">
             Temora
