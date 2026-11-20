@@ -63,6 +63,7 @@ GitHub Actions（`.github/workflows/ci.yml`）で、push と PR のたびに che
 
 | 変数                      | 内容                                                                                                 |
 | ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`    | （任意）サイトの URL。未設定なら https://temora.lifecore.jp                                          |
 | `NEXT_PUBLIC_SUPPORT_URL` | （任意）応援ボタンの受け先（https のみ）。未設定なら応援ボタンは表示しない                           |
 | `CONVEX_DEPLOY_KEY`       | Convex の本番デプロイキー。ビルドコマンドを `npm run build:deploy` にすると、接続先 URL は自動で渡る |
 

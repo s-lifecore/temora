@@ -34,6 +34,15 @@
 - **`globals.css` を変えても dev サーバーに反映されないことがある**：Tailwind の turbopack ローダーが古い CSS を出し続けることがあった。見た目がおかしいときは、dev サーバーを再起動する（`.next` を消してから起動すると確実）。確認だけなら `npm run build && npx next start -p 3200` の本番ビルドで見る
 - **未 push のコードのコミットがあるときに、ドキュメントだけ push しない**：push は手元のコミットをまとめて送るので、コードも一緒に上がってしまう。コードに影響する変更の push は確認が必要（CLAUDE.md）なので、その場合はドキュメントの push も確認をとってから行う
 
+## SEO と共有画像
+
+- サイトの URL は `src/lib/site.ts`（既定は https://temora.lifecore.jp、`NEXT_PUBLIC_SITE_URL` で上書き可・任意）。タイトル・説明・Open Graph・X のカードは `src/app/layout.tsx`
+- `robots.txt`（`src/app/robots.ts`）：会議（`/r/`）と料金の試作（`/pricing`）を検索の対象外にしている。会議の画面にはページ側でも `noindex` を付けている（利用者の案が載るため、**検索に載せない**）
+- `sitemap.xml`（`src/app/sitemap.ts`）：トップと応援ページ。公開ページを増やしたら追加する
+- 共有画像（OG 画像）：`src/app/og-image.tsx` で生成。文言は `src/app/og-text.ts`。**文言を変えたら `npm run og:font` で、画像用のフォント（使う文字だけを抜き出した Zen Maru Gothic）を作り直す**。フォントにない文字（例: ✕）は描画されないので、記号は図形で描く
+- 共有画像の生成は、`opengraph-image` だけビルド時ではなくリクエストのたびになっている（`twitter-image` はビルド時）。中身は同じで負荷も小さいので、そのままにしている
+- スマホのホーム画面用アイコンは `src/app/apple-icon.tsx`
+
 ## テストと確認
 
 - `npm run check`：型チェック・lint・フォーマット・テスト（通ったら自動でコミットする）
