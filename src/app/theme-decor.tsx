@@ -1,6 +1,6 @@
 import type { Design } from "@/lib/designs";
 
-// 画面の左右の余白に置く、テーマごとの飾りの絵。広い画面（パソコン）でだけ表示する
+// テーマごとの飾りの絵。広い画面（パソコン）では左右の余白に、狭い画面（スマホなど）では最初のカードの上に小さく並べる
 
 export function ThemeDecor({ design }: { design: Design }) {
   const pair = DECOR[design];
@@ -14,6 +14,18 @@ export function ThemeDecor({ design }: { design: Design }) {
         {pair.right}
       </div>
     </>
+  );
+}
+
+// 狭い画面（スマホなど）用：最初のカードの上に、小さく乗っているように並べる
+export function ThemeDecorPeek({ design, className = "" }: { design: Design; className?: string }) {
+  const pair = DECOR[design];
+  if (!pair) return null;
+  return (
+    <div className={`theme-decor-peek ${className}`} aria-hidden>
+      <div>{pair.left}</div>
+      <div>{pair.right}</div>
+    </div>
   );
 }
 

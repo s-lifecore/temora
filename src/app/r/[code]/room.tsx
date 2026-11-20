@@ -10,7 +10,7 @@ import { Collecting } from "./collecting";
 import { Header } from "./header";
 import { Decided, Feedback, Tie, Working } from "./phases";
 import { Voting } from "./voting";
-import { ThemeDecor } from "../../theme-decor";
+import { ThemeDecor, ThemeDecorPeek } from "../../theme-decor";
 
 export type RoomView = FunctionReturnType<typeof api.rooms.view>;
 
@@ -72,6 +72,7 @@ function Joined({ code, session }: { code: string; session: Session }) {
     <div data-design={view.room.design} className="min-h-screen">
       <ThemeDecor design={view.room.design} />
       <main className="mx-auto max-w-3xl space-y-5 px-4 py-8">
+        <ThemeDecorPeek design={view.room.design} className="-mb-5" />
         <Header view={view} />
         {p === "collecting" && <Collecting view={view} act={act} />}
         {(p === "judging" || p === "revising") && <Working view={view} act={act} />}
@@ -95,6 +96,7 @@ function Join({ code, onJoined }: { code: string; onJoined: (s: Session) => void
     <div data-design={info?.design ?? "simple"} className="min-h-screen">
       <ThemeDecor design={info?.design ?? "simple"} />
       <main className="mx-auto max-w-md px-4 py-12">
+        <ThemeDecorPeek design={info?.design ?? "simple"} />
         <div className="card space-y-4">
           <p className="text-sm font-semibold text-accent">Temora</p>
           {info === undefined && <p className="text-sm text-muted">読み込み中…</p>}

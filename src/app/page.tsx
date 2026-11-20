@@ -10,7 +10,7 @@ import { errorText, saveSession } from "@/lib/client";
 import { DEFAULT_DESIGN, DESIGNS, type Design } from "@/lib/designs";
 import { formatDateTime, nextHour, toLocalInput } from "@/lib/time";
 import { SupportCard } from "./support-link";
-import { ThemeDecor } from "./theme-decor";
+import { ThemeDecor, ThemeDecorPeek } from "./theme-decor";
 
 export default function Home() {
   const router = useRouter();
@@ -33,6 +33,7 @@ export default function Home() {
           </p>
         </header>
 
+        <ThemeDecorPeek design={design} className="-mt-4" />
         <section className="card mb-6">
           <h2 className="mb-3 font-bold">招待された会議に入る</h2>
           <form
@@ -297,9 +298,12 @@ function CreateForm({ design, onDesign }: { design: Design; onDesign: (d: Design
         <p className="hint mt-1">各メンバーの「譲れない条件」は、参加したあとにそれぞれが追加します。</p>
       </div>
       <div>
-        <label className="label" htmlFor="f5">
-          案の締切
-        </label>
+        <div className="flex items-end justify-between">
+          <label className="label" htmlFor="f5">
+            案の締切
+          </label>
+          <ThemeDecorPeek design={design} className="mb-0 pr-3" />
+        </div>
         <input
           id="f5"
           type="datetime-local"

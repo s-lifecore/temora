@@ -250,9 +250,28 @@ body {
   }
 }
 
-/* テーマの飾りの絵（左右の余白・広い画面だけ） */
+/* テーマの飾りの絵（広い画面は左右の余白、狭い画面はページの下に並べる） */
 .theme-decor {
   display: none;
+}
+@layer components {
+  .theme-decor-peek {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 0.75rem;
+    padding-right: 1.25rem;
+    margin-bottom: -3px;
+    pointer-events: none;
+  }
+  .theme-decor-peek > div {
+    width: 52px;
+  }
+  @media (min-width: 1280px) {
+    .theme-decor-peek {
+      display: none;
+    }
+  }
 }
 @media (min-width: 1280px) {
   .theme-decor {
