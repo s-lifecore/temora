@@ -27,7 +27,7 @@
 ## 技術構成
 
 - Next.js（App Router）/ TypeScript / Tailwind CSS
-- Claude API（`claude-opus-5-5` に固定、サーバー側のみで実行）
+- Claude API（標準は `claude-haiku-5-5`。全会議で同じモデルを、サーバー側だけで実行。`AI_MODEL` で変更可）
 - バックエンド：Convex（v1 は Supabase で作り、Convex に移行した）。理由は [docs/db-choice.md](docs/db-choice.md)
 
 ## 開発
@@ -39,25 +39,27 @@ npm run dev:convex           # Convex にログインしてデプロイ先を選
 npm run dev                  # 別のターミナルで
 ```
 
-| コマンド                          | 内容                                                                              |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| `npm run check`                   | 型チェック → lint → フォーマット確認 → テストをまとめて実行（コミット前に）       |
-| `npm run typecheck`               | 画面側と Convex 側の両方を `tsc --noEmit`                                         |
-| `npm run lint` / `lint:fix`       | ESLint（警告も失敗扱い） / 自動修正                                               |
-| `npm run format` / `format:check` | Prettier で整形 / 整形済みか確認                                                  |
-| `npm test`                        | ルール部分のユニットテスト（Vitest）                                              |
-| `npm run build`                   | Next.js の本番ビルド                                                              |
-| `npm run build:deploy`            | Convex を本番にデプロイしてから Next.js をビルド（Vercel などのビルドコマンド用） |
-| `npm run smoke -- 4 split`        | 一連の流れを関数呼び出しで通す（`.env.local` の接続先を使う）                     |
+| コマンド                          | 内容                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`                   | 型チェック → lint → フォーマット確認 → テストをまとめて実行（コミット前に）                                                                        |
+| `npm run typecheck`               | 画面側と Convex 側の両方を `tsc --noEmit`                                                                                                          |
+| `npm run lint` / `lint:fix`       | ESLint（警告も失敗扱い） / 自動修正                                                                                                                |
+| `npm run format` / `format:check` | Prettier で整形 / 整形済みか確認                                                                                                                   |
+| `npm test`                        | ルール部分のユニットテスト（Vitest）                                                                                                               |
+| `npm run build`                   | Next.js の本番ビルド                                                                                                                               |
+| `npm run build:deploy`            | Convex を本番にデプロイしてから Next.js をビルド（Vercel などのビルドコマンド用）                                                                  |
+| `npx convex run aiEval:compare`   | 判定の質と費用をモデルごとに比べる（`{"models":["claude-opus-5-5","claude-haiku-5-5"],"runs":2}` のように指定）。本物の API を呼ぶので費用がかかる |
+| `npm run smoke -- 4 split`        | 一連の流れを関数呼び出しで通す（`.env.local` の接続先を使う）                                                                                      |
 
 GitHub Actions（`.github/workflows/ci.yml`）で、push と PR のたびに check とビルドを実行する。
 
 `.env.local` には Convex の接続先だけを置く。サーバー側だけで使う値は Convex の環境変数（`npx convex env set`）に置く：
 
-| 変数                | 内容                                       |
-| ------------------- | ------------------------------------------ |
-| `ANTHROPIC_API_KEY` | Claude API のキー                          |
-| `AI_MOCK`           | `1` にすると AI を呼ばず、見本の判定で動く |
+| 変数                | 内容                                        |
+| ------------------- | ------------------------------------------- |
+| `ANTHROPIC_API_KEY` | Claude API のキー                           |
+| `AI_MOCK`           | `1` にすると AI を呼ばず、見本の判定で動く  |
+| `AI_MODEL`          | 使うモデル（未設定なら `claude-haiku-5-5`） |
 
 ## コードの場所
 
