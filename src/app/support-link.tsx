@@ -1,35 +1,30 @@
+import Link from "next/link";
 import { supportUrl } from "@/lib/support";
 
+// 応援の受け先（NEXT_PUBLIC_SUPPORT_URL）が設定されているときだけ、応援ページへの入口を出す
+
 export function SupportCard() {
-  const url = supportUrl();
-  if (!url) return null;
+  if (!supportUrl()) return null;
   return (
     <section className="card flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted">
         Temora は無料で使えます。気に入ったら、開発と運営を応援してもらえるとうれしいです。
       </p>
-      <SupportButton url={url} />
+      <Link href="/support" className="btn-ghost shrink-0">
+        応援する
+      </Link>
     </section>
   );
 }
 
 export function SupportInline() {
-  const url = supportUrl();
-  if (!url) return null;
+  if (!supportUrl()) return null;
   return (
     <p className="text-center text-sm text-muted">
       Temora が役に立ったら、
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-accent underline">
+      <Link href="/support" className="text-accent underline">
         応援してもらえるとうれしいです
-      </a>
+      </Link>
     </p>
-  );
-}
-
-function SupportButton({ url }: { url: string }) {
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="btn-ghost shrink-0">
-      応援する
-    </a>
   );
 }
