@@ -26,7 +26,7 @@ export default function Home() {
           <h1 className="mt-1 text-2xl leading-snug font-bold">アイデアを持ち寄って、みんなでテーマを決める。</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             各自が案と「譲れない条件」を出すと、AI が全案を同じ基準で ○△✕ に照らします。AI
-            は推薦しません。候補を最大3つに絞り、どれにするかは全員の承認で決めます。集まれなくても、締切がくれば自動で進みます。
+            は推薦しません。候補を最大3つに絞り、どれにするかは全員の承認で決めます。集まれなくても、締切が来たら自動で進みます。
           </p>
         </header>
 
