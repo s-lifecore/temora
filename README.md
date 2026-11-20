@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Temora（テモラ）
 
-## Getting Started
+参加者がアイデアや意見を持ち寄り、みんなでテーマを決めていくサービス。
 
-First, run the development server:
+**名前の由来**：「Theme（テーマ）」と「Aura（雰囲気・広がり）」を組み合わせた造語。短く覚えやすく、ハッカソンに限らず勉強会やイベントなど、幅広い用途に展開できる名前にした。
+
+[MeetForMe](https://github.com/TAK0-wasa/ShipLab-Hackathon-2026)（ShipLab Hackathon 2026）が解こうとした「集まれないチームが、案を1つに決められない」課題を、別のアプローチで解き直すプロジェクト。
+
+## 元祖との違い
+
+| | MeetForMe | Temora |
+|---|---|---|
+| AI の役割 | 1人1体の代理人が会議して、推薦案を1つ出す | 全案を判断軸ごとに ○△✕ で照らすだけ。推薦しない |
+| 決め方 | 推薦案を全員が承認 | 候補（最大3案）に各自が承認を付ける。5人未満は全員、5人以上は3分の2以上で決定 |
+| 決まらないとき | 議論のやり直しを繰り返す | 1回だけ意見を集めて改訂 → それでもダメなら最多票。同数ならルーレットかホスト（会議作成時に選ぶ） |
+| AI の平等さ | 端末ごとにキー・モデルが違いうる | サーバーで固定モデル・同じ指示・全案を1回で判定 |
+| 進行 | 代表者の画面が開いている間だけ | 締切ベース。誰かがアクセスした時にサーバーが進める |
+
+## 流れ
+
+1. ホストが会議を作る（お題・チーム共通の判断軸・締切・同数時の決め方）
+2. 各自が案と「譲れない条件」（最大2つ）を出す。AI で案を同じ型にそろえられる
+3. 全員提出 or 締切で、AI が全案を全軸に ○△✕ で照合
+4. 譲れない条件で ✕ の案を外し、○ の多い順に最大3案を候補にする（ルール計算）
+5. 各自が「これならいい」案に承認 → 決定
+
+## 技術構成
+
+- Next.js（App Router）/ TypeScript / Tailwind CSS
+- Claude API（`claude-opus-5-5` に固定、サーバー側のみで実行）
+- バックエンド：Convex（v1 は Supabase で作り、Convex に移行した）。理由は [docs/db-choice.md](docs/db-choice.md)
+
+## 開発
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # 値は次の npx convex dev が自動で書き込む
+npx convex dev          # Convex にログインしてデプロイ先を選ぶ。関数を監視して自動で反映する
+npm run dev             # 別のターミナルで
+npm test                # ルール部分のユニットテスト
+npm run smoke -- 4 split   # 一連の流れを関数呼び出しで通す（.env.local の接続先を使う）
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` には Convex の接続先だけを置く。サーバー側だけで使う値は Convex の環境変数（`npx convex env set`）に置く：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| 変数 | 内容 |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude API のキー |
+| `AI_MOCK` | `1` にすると AI を呼ばず、見本の判定で動く |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## コードの場所
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 場所 | 内容 |
+|---|---|
+| `src/lib/rules.ts` | ルール（必要な承認数・3案への絞り込み・決定）。純粋関数でテストつき |
+| `convex/schema.ts` | テーブル定義 |
+| `convex/rooms.ts` | 画面から呼ぶ関数（作成・参加・案・承認・ホスト操作・表示用データ） |
+| `convex/model.ts` | 状態遷移と締切の予約 |
+| `convex/engine.ts` | 締切で動く関数、AI の結果の書き込み |
+| `convex/ai.ts` | Claude の呼び出し（Node ランタイム） |
+| `docs/` | 課題整理・決定ログ・DB 選定の理由 |

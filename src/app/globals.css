@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f6f5f1;
+  --card: #ffffff;
+  --fg: #1d1c1a;
+  --muted: #6b6860;
+  --line: #e3e0d8;
+  --accent: #2f5d50;
+  --accent-soft: #e4eee9;
+  --o: #2f7d4f;
+  --d: #b0821c;
+  --x: #b8433a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #161614;
+    --card: #1f1f1c;
+    --fg: #ecebe6;
+    --muted: #a19e95;
+    --line: #34332f;
+    --accent: #7fbfa8;
+    --accent-soft: #23302b;
+    --o: #6cc28f;
+    --d: #e0b452;
+    --x: #e57b70;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-o: var(--o);
+  --color-d: var(--d);
+  --color-x: var(--x);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-card p-5;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-card transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-bg px-3 py-2.5 text-sm outline-none focus:border-accent;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold;
+  }
+  .hint {
+    @apply text-xs text-muted;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.cell-pop {
+  animation: pop 0.35s ease-out both;
 }
