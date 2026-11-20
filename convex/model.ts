@@ -10,11 +10,12 @@ export const AI_RETRY_DELAY_MS = 5_000;
 export const ASSIST_LIMIT = 10;
 export const MAX_MEMBERS = 12;
 export const MAX_IDEAS = 5;
-export const MODEL = "claude-opus-5-5";
+export const DEFAULT_MODEL = "claude-haiku-5-5";
 export const MOCK_MODEL = "mock（見本の判定）";
 
 export const aiMock = () => process.env.AI_MOCK === "1";
-export const modelLabel = () => (aiMock() ? MOCK_MODEL : MODEL);
+export const aiModel = () => process.env.AI_MODEL?.trim() || DEFAULT_MODEL;
+export const modelLabel = () => (aiMock() ? MOCK_MODEL : aiModel());
 
 export function fail(message: string): never {
   throw new ConvexError(message);

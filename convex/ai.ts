@@ -7,7 +7,7 @@ import { z } from "zod";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalAction } from "./_generated/server";
-import { MOCK_MODEL, MODEL, aiMock } from "./model";
+import { MOCK_MODEL, aiMock, aiModel } from "./model";
 import type { Axis, Mark } from "../src/lib/rules";
 
 const SYSTEM = [
@@ -19,13 +19,25 @@ const SYSTEM = [
 
 let client: Anthropic | null = null;
 
-async function call<T extends z.ZodType>(schema: T, prompt: string): Promise<{ data: z.infer<T>; model: string }> {
+export type CallResult<T> = {
+  data: T;
+  model: string;
+  usage: { input: number; output: number };
+  ms: number;
+};
+
+export async function call<T extends z.ZodType>(
+  schema: T,
+  prompt: string,
+  model: string = aiModel(),
+): Promise<CallResult<z.infer<T>>> {
   client ??= new Anthropic();
+  const started = Date.now();
+  const withFallback = !model.startsWith("claude-haiku");
   const res = await client.beta.messages.parse({
-    model: MODEL,
+    model,
     max_tokens: 16000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
+    ...(withFallback ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
     output_config: { effort: "medium", format: betaZodOutputFormat(schema) },
     system: SYSTEM,
     messages: [{ role: "user", content: prompt }],
@@ -33,8 +45,15 @@ async function call<T extends z.ZodType>(schema: T, prompt: string): Promise<{ d
   if (res.stop_reason === "refusal") throw new Error("AI が応答を断りました");
   if (res.stop_reason === "max_tokens") throw new Error("AI の出力が長すぎて途中で切れました");
   if (!res.parsed_output) throw new Error("AI の出力を読み取れませんでした");
-  return { data: res.parsed_output, model: res.model };
+  return {
+    data: res.parsed_output,
+    model: res.model,
+    usage: { input: res.usage.input_tokens, output: res.usage.output_tokens },
+    ms: Date.now() - started,
+  };
 }
+
+export const symbol = (raw: string, prefix: "I" | "A"): string => raw.match(new RegExp(`${prefix}\\d+`))?.[0] ?? raw;
 
 const message = (e: unknown) => (e instanceof Error ? e.message : "AI の処理に失敗しました");
 
@@ -83,7 +102,7 @@ export const assist = action({
   },
 });
 
-const JudgeSchema = z.object({
+export const JudgeSchema = z.object({
   items: z.array(
     z.object({
       idea: z.string(),
@@ -92,6 +111,29 @@ const JudgeSchema = z.object({
     }),
   ),
 });
+
+export function judgePrompt(input: { theme: string; axes: Axis[]; ideas: { title: string; body: string }[] }): string {
+  return [
+    `お題: ${input.theme || "（未設定）"}`,
+    "",
+    "<axes>",
+    ...input.axes.map((a, i) => `A${i + 1}: ${a.label}${a.kind === "must" ? "（メンバーの譲れない条件）" : ""}`),
+    "</axes>",
+    "",
+    "<ideas>",
+    ...input.ideas.map((idea, i) => `[I${i + 1}] ${idea.title}\n${idea.body}`),
+    "</ideas>",
+    "",
+    "すべての案について、次を出してください。",
+    "- summary: 案の中身を「何を／誰のために／どうやって」の3つを「／」で区切って80字以内でまとめる。「何を作る：」のような見出しは付けない。どの案も同じ長さ・同じ書き方にそろえる",
+    "- marks: すべての軸について、その案が軸を満たすか",
+    '  - "o": 満たす / "d": 一部満たす・書かれていなくて判断できない / "x": 満たさない',
+    "  - 書かれた内容から常識的に読み取れるなら o か x を付ける（例: 「入門講座」なら初心者向けと読める。「匿名アンケートだけで集める」なら個人情報を扱わないと読める）",
+    "  - 書かれた内容からどちらとも読み取れないときだけ d にする。書かれていない機能や条件を想像で足さない",
+    "  - reason: 案のどの記述からそう判断したかを30字以内で。読み取れなかったときは「記述なし」と書く",
+    "idea には I1 のような記号、axis には A1 のような記号を入れてください。",
+  ].join("\n");
+}
 
 type JudgedItem = { ideaId: Id<"ideas">; summary: string; marks: { axisId: string; mark: Mark; reason: string }[] };
 
@@ -121,37 +163,15 @@ export const judge = internalAction({
       } else {
         const ideaKey = new Map(input.ideas.map((idea, i) => [`I${i + 1}`, idea.id]));
         const axisKey = new Map(input.axes.map((axis, i) => [`A${i + 1}`, axis.id]));
-        const res = await call(
-          JudgeSchema,
-          [
-            `お題: ${input.theme || "（未設定）"}`,
-            "",
-            "<axes>",
-            ...input.axes.map(
-              (a, i) => `A${i + 1}: ${a.label}${a.kind === "must" ? "（メンバーの譲れない条件）" : ""}`,
-            ),
-            "</axes>",
-            "",
-            "<ideas>",
-            ...input.ideas.map((idea, i) => `[I${i + 1}] ${idea.title}\n${idea.body}`),
-            "</ideas>",
-            "",
-            "すべての案について、次を出してください。",
-            "- summary: 案の中身を「何を作る／誰のため／どう作る」の順に80字以内でまとめる。どの案も同じ長さ・同じ書き方にそろえる",
-            "- marks: すべての軸について、その案が軸を満たすか",
-            '  - "o": 満たす / "d": 一部満たす・書かれていなくて判断できない / "x": 満たさない',
-            "  - reason: 案のどの記述からそう判断したかを30字以内で。書かれていないことは推測せず「記述なし」として d にする",
-            "idea には I1 のような記号、axis には A1 のような記号を入れてください。",
-          ].join("\n"),
-        );
+        const res = await call(JudgeSchema, judgePrompt(input));
         model = res.model;
         items = [];
         for (const it of res.data.items) {
-          const ideaId = ideaKey.get(it.idea);
+          const ideaId = ideaKey.get(symbol(it.idea, "I"));
           if (!ideaId || items.some((x) => x.ideaId === ideaId)) continue;
           const marks = new Map<string, { mark: Mark; reason: string }>();
           for (const m of it.marks) {
-            const axisId = axisKey.get(m.axis);
+            const axisId = axisKey.get(symbol(m.axis, "A"));
             if (axisId) marks.set(axisId, { mark: m.mark, reason: m.reason });
           }
           items.push({
@@ -222,7 +242,11 @@ export const revise = internalAction({
         );
         model = res.model;
         items = res.data.items
-          .map((it) => ({ ideaId: ideaKey.get(it.idea), title: it.title, body: `${it.body}\n変えた点: ${it.change}` }))
+          .map((it) => ({
+            ideaId: ideaKey.get(symbol(it.idea, "I")),
+            title: it.title,
+            body: `${it.body}\n変えた点: ${it.change}`,
+          }))
           .filter((it): it is { ideaId: Id<"ideas">; title: string; body: string } => !!it.ideaId);
         if (new Set(items.map((i) => i.ideaId)).size !== input.ideas.length)
           throw new Error("AI がすべての案を改訂しませんでした");

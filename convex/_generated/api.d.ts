@@ -9,6 +9,7 @@
  */
 
 import type * as ai from "../ai.js";
+import type * as aiEval from "../aiEval.js";
 import type * as engine from "../engine.js";
 import type * as model from "../model.js";
 import type * as rooms from "../rooms.js";
@@ -21,6 +22,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ai: typeof ai;
+  aiEval: typeof aiEval;
   engine: typeof engine;
   model: typeof model;
   rooms: typeof rooms;
