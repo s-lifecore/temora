@@ -6,6 +6,8 @@
 
 [MeetForMe](https://github.com/TAK0-wasa/ShipLab-Hackathon-2026)（ShipLab Hackathon 2026）が解こうとした「集まれないチームが、案を1つに決められない」課題を、別のアプローチで解き直すプロジェクト。
 
+> ShipLab-Hackathon-2026（MeetForMe）の管理者の許可を得たうえで、その課題設定をもとに個人的なアレンジを加えて開発しています。
+
 ## 元祖との違い
 
 |                | MeetForMe                                 | Temora                                                                                           |
