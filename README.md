@@ -111,3 +111,9 @@ GitHub Actions（`.github/workflows/ci.yml`）で、push と PR のたびに che
 | `convex/engine.ts`                   | 締切で動く関数、AI の結果の書き込み                                                                               |
 | `convex/ai.ts`                       | Claude の呼び出し（Node ランタイム）                                                                              |
 | `docs/`                              | 課題整理・決定ログ・DB 選定の理由                                                                                 |
+
+## ライセンス
+
+All Rights Reserved。著作権者の事前の許可なく、本リポジトリの全部または一部を使用・複製・改変・頒布することを禁じます（[LICENSE](LICENSE)）。
+
+元にした [MeetForMe](https://github.com/TAK0-wasa/ShipLab-Hackathon-2026)（MIT ライセンス）のコードは使用しておらず、課題設定とアプローチを参考に新しく実装しています。
