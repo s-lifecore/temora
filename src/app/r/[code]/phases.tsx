@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { errorText } from "@/lib/client";
+import { SupportInline } from "../../support-link";
 import { Matrix } from "./matrix";
 import type { Act, RoomView } from "./room";
 
@@ -332,6 +333,7 @@ export function Decided({ view }: { view: RoomView }) {
           <Matrix view={view} ideaIds={room.shortlist} />
         </section>
       )}
+      {!spinning && <SupportInline />}
     </div>
   );
 }

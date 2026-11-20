@@ -9,6 +9,7 @@ import { api } from "../../convex/_generated/api";
 import { errorText, saveSession } from "@/lib/client";
 import { DEFAULT_DESIGN, DESIGNS, type Design } from "@/lib/designs";
 import { formatDateTime, nextHour, toLocalInput } from "@/lib/time";
+import { SupportCard } from "./support-link";
 
 export default function Home() {
   const router = useRouter();
@@ -53,6 +54,10 @@ export default function Home() {
         </section>
 
         {!isAuthenticated ? <SignInCard loading={isLoading} /> : <CreateForm design={design} onDesign={setDesign} />}
+
+        <div className="mt-6">
+          <SupportCard />
+        </div>
       </main>
     </div>
   );
