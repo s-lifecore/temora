@@ -16,7 +16,8 @@
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p convex",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
-    "smoke": "node --env-file-if-exists=.env.local scripts/smoke.mjs"
+    "smoke": "node --env-file-if-exists=.env.local scripts/smoke.mjs",
+    "og:font": "node scripts/og-font.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",

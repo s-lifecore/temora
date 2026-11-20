@@ -38,9 +38,9 @@ export function ThemeDecorPeek({
 const INK = "#2b2118";
 const SKIN = "#ffd9b8";
 
-function FunThinker() {
+export function FunThinker({ width, height }: { width?: number; height?: number } = {}) {
   return (
-    <svg viewBox="0 0 220 320" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={width} height={height} viewBox="0 0 220 320" fill="none" strokeLinecap="round" strokeLinejoin="round">
       <g className="decor-float">
         <g stroke="#e39b00" strokeWidth="5">
           <path d="M112 18v-12M150 32l9-9M74 32l-9-9M166 66h12M58 66H46" />
@@ -63,9 +63,9 @@ function FunThinker() {
   );
 }
 
-function FunNotes() {
+export function FunNotes({ width, height }: { width?: number; height?: number } = {}) {
   return (
-    <svg viewBox="0 0 220 320" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={width} height={height} viewBox="0 0 220 320" fill="none" strokeLinecap="round" strokeLinejoin="round">
       <g className="decor-float decor-delay">
         <g transform="rotate(-10 60 60)">
           <rect x="30" y="34" width="62" height="56" rx="4" fill="#ffe066" stroke={INK} strokeWidth="5" />
@@ -76,19 +76,9 @@ function FunNotes() {
           <path d="M140 70h38M140 86h20" stroke={INK} strokeWidth="4" />
         </g>
       </g>
-      <text
-        x="96"
-        y="168"
-        fontSize="72"
-        fontWeight="900"
-        fill="#3a86ff"
-        stroke={INK}
-        strokeWidth="4"
-        paintOrder="stroke"
-        fontFamily="var(--font-maru), sans-serif"
-      >
-        ?
-      </text>
+      <path d="M98 128c0-12 9-20 20-20s20 8 20 19c0 9-6 13-12 17-5 3-8 6-8 12v4" stroke={INK} strokeWidth="16" />
+      <path d="M98 128c0-12 9-20 20-20s20 8 20 19c0 9-6 13-12 17-5 3-8 6-8 12v4" stroke="#3a86ff" strokeWidth="9" />
+      <circle cx="118" cy="178" r="8" fill="#3a86ff" stroke={INK} strokeWidth="4" />
       <path d="M40 320c0-56 26-88 70-88s70 32 70 88" fill="#14965a" stroke={INK} strokeWidth="5" />
       <circle cx="110" cy="200" r="34" fill={SKIN} stroke={INK} strokeWidth="5" />
       <path d="M76 196c0-24 16-38 34-38s34 14 34 38c-10-10-22-14-34-14s-24 4-34 14z" fill="#7a4a2a" />
