@@ -70,7 +70,7 @@ if (s.room.phase === "feedback") {
   s = await waitPhase(S(host), ["voting"]);
   console.log("round", s.room.round, "候補:", s.room.shortlist.map(title).join(" / "));
   for (const [i, p] of people.entries()) {
-    await client.mutation(api.rooms.vote, { ...S(p), approved: [s.room.shortlist[i % 2]] });
+    await client.mutation(api.rooms.vote, { ...S(p), approved: [s.room.shortlist[i % s.room.shortlist.length]] });
   }
   s = await waitPhase(S(host), ["decided", "tie"]);
 }
