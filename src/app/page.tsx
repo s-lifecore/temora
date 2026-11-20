@@ -33,7 +33,7 @@ export default function Home() {
           </p>
         </header>
 
-        <ThemeDecorPeek design={design} className="-mt-4" />
+        <ThemeDecorPeek design={design} only="left" className="-mt-4" />
         <section className="card mb-6">
           <h2 className="mb-3 font-bold">招待された会議に入る</h2>
           <form
@@ -302,7 +302,7 @@ function CreateForm({ design, onDesign }: { design: Design; onDesign: (d: Design
           <label className="label" htmlFor="f5">
             案の締切
           </label>
-          <ThemeDecorPeek design={design} className="mb-0 pr-3" />
+          <ThemeDecorPeek design={design} only="right" className="mb-0 pr-3" />
         </div>
         <input
           id="f5"

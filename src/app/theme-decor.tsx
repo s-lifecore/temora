@@ -18,13 +18,21 @@ export function ThemeDecor({ design }: { design: Design }) {
 }
 
 // 狭い画面（スマホなど）用：最初のカードの上に、小さく乗っているように並べる
-export function ThemeDecorPeek({ design, className = "" }: { design: Design; className?: string }) {
+export function ThemeDecorPeek({
+  design,
+  only,
+  className = "",
+}: {
+  design: Design;
+  only?: "left" | "right";
+  className?: string;
+}) {
   const pair = DECOR[design];
   if (!pair) return null;
   return (
     <div className={`theme-decor-peek ${className}`} aria-hidden>
-      <div>{pair.left}</div>
-      <div>{pair.right}</div>
+      {only !== "right" && <div>{pair.left}</div>}
+      {only !== "left" && <div>{pair.right}</div>}
     </div>
   );
 }
