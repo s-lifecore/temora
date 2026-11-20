@@ -17,7 +17,7 @@
 
 一覧と置き場所は README の「環境変数」と、手元の `.env.prod`（git 対象外）を参照。要点だけ：
 
-- Vercel に置くのは `CONVEX_DEPLOY_KEY` だけ（権限は `deployment:deploy` のみ）。ほかはすべて Convex 側
+- Vercel に置くのは `CONVEX_DEPLOY_KEY`（権限は `deployment:deploy` のみ）と、応援ボタンを出すなら `NEXT_PUBLIC_SUPPORT_URL`（https のみ）。ほかはすべて Convex 側
 - dev と本番の Convex の環境変数は別物。片方に入れても、もう片方には入らない
 - `AUTH_GOOGLE_CLIENT_ID` / `AUTH_GOOGLE_CLIENT_SECRET` は `convex/convex.config.ts` で必須と宣言している。**未設定だとデプロイ自体が失敗する**
 - `AUTH_ALLOWED_ORIGINS` はポート番号まで含めて比較される。`http://localhost` では `http://localhost:3000` が通らない。未設定だと localhost（3000・3001・3100）だけが許可される
@@ -48,8 +48,9 @@
 
 - Anthropic Console で月の利用額の上限を設定する（開発者が行う）
 - dev の Google ログインの値が仮のまま。本番と同じ OAuth クライアントを使い、リダイレクト URI に `https://rapid-falcon-985.convex.site/oauth/google/callback` を追加して、dev にも ID とシークレットを入れる
-- 料金プランは検討中（[pricing-ideas.md](pricing-ideas.md)）。個人プランと法人・団体プランに分ける案で、試作への反映は未着手
+- 料金プランは検討中（[pricing-ideas.md](pricing-ideas.md)）。個人プランと法人・団体プランに分ける案を試作（`/pricing`）に反映済み。課金そのものは未実装
 - 試してもらう計画（[trial-plan.md](trial-plan.md)）は未着手
+- 応援（寄付）の受け先サービスが未定。決まったら `NEXT_PUBLIC_SUPPORT_URL` を Vercel に設定して再デプロイする
 - 税金まわりの「要確認」の項目（[tax-notes.md](tax-notes.md)）
 
 ## 関連ドキュメント
