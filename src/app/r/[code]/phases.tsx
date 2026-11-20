@@ -1,25 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { errorText } from "@/lib/client";
 import { Matrix } from "./matrix";
 import type { Act, RoomView } from "./room";
 
 export function Working({ view, act }: { view: RoomView; act: Act }) {
   const { room, me } = view;
   const revising = room.phase === "revising";
+  const [manual, setManual] = useState(false);
+  const [error, setError] = useState("");
+  const run = async (fn: () => Promise<unknown>) => {
+    setError("");
+    try {
+      await fn();
+    } catch (e) {
+      setError(errorText(e));
+    }
+  };
+
+  if (manual && room.aiNeedsRetry && !revising)
+    return <ManualJudge view={view} act={act} onCancel={() => setManual(false)} />;
+
   return (
     <section className="card space-y-3 text-center">
       {room.aiNeedsRetry ? (
         <>
-          <p className="font-semibold text-x">AI の処理がうまくいきませんでした</p>
+          <p className="font-semibold text-x">AI の処理が止まっています</p>
           {room.aiError && <p className="text-sm text-muted">{room.aiError}</p>}
           {me.isHost ? (
-            <button className="btn" onClick={() => act.host("retry")}>
-              もう一度試す
-            </button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button className="btn" onClick={() => run(() => act.host("retry"))}>
+                もう一度 AI で試す
+              </button>
+              {revising ? (
+                <button className="btn-ghost" onClick={() => run(act.skipRevision)}>
+                  改訂せずに、1回目の最多の承認で決める
+                </button>
+              ) : (
+                <button className="btn-ghost" onClick={() => setManual(true)}>
+                  ホストが手動で ○△✕ を付ける
+                </button>
+              )}
+            </div>
           ) : (
-            <p className="text-sm text-muted">ホストがやり直すのを待っています。</p>
+            <p className="text-sm text-muted">ホストが進めるのを待っています。</p>
           )}
+          {error && <p className="text-sm text-x">{error}</p>}
         </>
       ) : (
         <>
@@ -35,6 +62,89 @@ export function Working({ view, act }: { view: RoomView; act: Act }) {
           {room.aiError && <p className="text-xs text-d">前回の失敗：{room.aiError}（自動でやり直しています）</p>}
         </>
       )}
+    </section>
+  );
+}
+
+const CYCLE = { d: "o", o: "x", x: "d" } as const;
+const SYMBOL = { o: "○", d: "△", x: "✕" } as const;
+const COLOR = { o: "text-o", d: "text-d", x: "text-x" } as const;
+
+function ManualJudge({ view, act, onCancel }: { view: RoomView; act: Act; onCancel: () => void }) {
+  const ideas = view.ideas.filter((i) => i.round === view.room.round);
+  const [marks, setMarks] = useState<Record<string, "o" | "d" | "x">>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const key = (ideaId: string, axisId: string) => `${ideaId}|${axisId}`;
+
+  return (
+    <section className="card space-y-4">
+      <div>
+        <h2 className="font-bold">手動で ○△✕ を付ける</h2>
+        <p className="mt-1 text-sm text-muted">
+          記号を押すたびに △ → ○ → ✕ と切り替わります。付けた結果は「ホストが手動で判定」と表示され、全員が見られます。
+        </p>
+      </div>
+      <ul className="space-y-3">
+        {ideas.map((idea) => (
+          <li key={idea.id} className="rounded-xl border border-line p-3">
+            <p className="font-semibold">{idea.title}</p>
+            {idea.body && <p className="mt-0.5 text-xs whitespace-pre-wrap text-muted">{idea.body}</p>}
+            <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+              {view.axes.map((axis) => {
+                const k = key(idea.id, axis.id);
+                const m = marks[k] ?? "d";
+                return (
+                  <li key={axis.id}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-lg bg-bg px-2 py-1.5 text-left text-xs"
+                      onClick={() => setMarks({ ...marks, [k]: CYCLE[m] })}
+                      aria-label={`${idea.title}・${axis.label}：${SYMBOL[m]}`}
+                    >
+                      <span className={`w-4 text-center text-base font-bold ${COLOR[m]}`}>{SYMBOL[m]}</span>
+                      <span className={axis.kind === "must" ? "text-accent" : ""}>
+                        {axis.label}
+                        {axis.ownerName && <span className="block text-[10px] text-muted">{axis.ownerName}の条件</span>}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-wrap gap-2">
+        <button
+          className="btn"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError("");
+            try {
+              await act.manualJudge(
+                ideas.flatMap((idea) =>
+                  view.axes.map((axis) => ({
+                    ideaId: idea.id,
+                    axisId: axis.id,
+                    mark: marks[key(idea.id, axis.id)] ?? "d",
+                  })),
+                ),
+              );
+            } catch (e) {
+              setError(errorText(e));
+              setBusy(false);
+            }
+          }}
+        >
+          この判定で承認に進む
+        </button>
+        <button className="btn-ghost" onClick={onCancel} disabled={busy}>
+          戻る
+        </button>
+      </div>
+      {error && <p className="text-sm text-x">{error}</p>}
     </section>
   );
 }

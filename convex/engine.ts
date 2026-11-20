@@ -1,12 +1,15 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { mark, phase } from "./schema";
+import { planOf } from "../src/lib/plans";
 import {
+  AI_LIMIT_ASSIST_MESSAGE,
+  AI_LIMIT_MESSAGE,
   AI_RETRY_DELAY_MS,
-  ASSIST_LIMIT,
   AUTO_AI_ATTEMPTS,
   auth,
   axesOf,
+  claimAiCall,
   closeFeedback,
   closeVoting,
   fail,
@@ -143,12 +146,26 @@ export const aiFailed = internalMutation({
   },
 });
 
+export const claimAi = internalMutation({
+  args: { roomId: v.id("rooms"), phase: v.union(v.literal("judging"), v.literal("revising")), round: v.number() },
+  returns: v.boolean(),
+  handler: async (ctx, { roomId, phase, round }) => {
+    const room = await ctx.db.get(roomId);
+    if (!room || room.phase !== phase || room.round !== round) return false;
+    if (await claimAiCall(ctx)) return true;
+    await ctx.db.patch(roomId, { aiError: AI_LIMIT_MESSAGE, aiAttempts: AUTO_AI_ATTEMPTS });
+    return false;
+  },
+});
+
 export const claimAssist = internalMutation({
   args: { code: v.string(), token: v.string() },
   handler: async (ctx, { code, token }) => {
     const { room, me } = await auth(ctx, code, token);
     requirePhase(room, "collecting");
-    if (me.assistCount >= ASSIST_LIMIT) fail(`AI で整えられるのは1人${ASSIST_LIMIT}回までです`);
+    const limit = planOf(room.plan).assistPerMember;
+    if (me.assistCount >= limit) fail(`AI で整えられるのは1人${limit}回までです`);
+    if (!(await claimAiCall(ctx))) fail(AI_LIMIT_ASSIST_MESSAGE);
     await ctx.db.patch(me._id, { assistCount: me.assistCount + 1 });
     return { memberId: me._id, theme: room.theme };
   },

@@ -13,10 +13,26 @@ export const phase = v.union(
 
 export const mark = v.union(v.literal("o"), v.literal("d"), v.literal("x"));
 
+export const plan = v.literal("free");
+
 export const design = v.union(v.literal("simple"), v.literal("fun"), v.literal("calm"), v.literal("cool"));
 
 export default defineSchema({
+  users: defineTable({
+    plan: v.optional(plan),
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    image: v.optional(v.string()),
+  }),
+
+  aiUsage: defineTable({
+    day: v.string(),
+    count: v.number(),
+  }).index("by_day", ["day"]),
+
   rooms: defineTable({
+    ownerId: v.optional(v.id("users")),
+    plan: v.optional(plan),
     code: v.string(),
     title: v.string(),
     theme: v.string(),
@@ -39,7 +55,9 @@ export default defineSchema({
     modelUsed: v.optional(v.string()),
     aiError: v.optional(v.string()),
     aiAttempts: v.number(),
-  }).index("by_code", ["code"]),
+  })
+    .index("by_code", ["code"])
+    .index("by_owner", ["ownerId"]),
 
   members: defineTable({
     roomId: v.id("rooms"),

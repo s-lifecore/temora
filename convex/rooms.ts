@@ -1,16 +1,16 @@
-import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { v, type ObjectType } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import {
-  ASSIST_LIMIT,
   AUTO_AI_ATTEMPTS,
+  MANUAL_MODEL,
   HOUR,
-  MAX_IDEAS,
-  MAX_MEMBERS,
   auth,
   axesOf,
   closeFeedback,
   closeVoting,
+  decideWithoutRevision,
   fail,
   ideasOf,
   maybeCloseCollecting,
@@ -19,8 +19,10 @@ import {
   membersOf,
   modelLabel,
   randomCode,
+  openVoting,
   randomToken,
   requirePhase,
+  roomsCreatedToday,
   roomByCode,
   scheduleAi,
   scheduleCollectDeadline,
@@ -28,67 +30,103 @@ import {
   startJudging,
   text,
 } from "./model";
+import { DEFAULT_PLAN, planOf, type PlanId } from "../src/lib/plans";
 import { MAX_MUST_HAVES, tally, threshold } from "../src/lib/rules";
 import { design } from "./schema";
 
 const session = { code: v.string(), token: v.string() };
 
-export const create = mutation({
-  args: {
-    hostName: v.string(),
-    title: v.string(),
-    theme: v.string(),
-    axes: v.array(v.string()),
-    tieMode: v.union(v.literal("manual"), v.literal("roulette")),
-    design: v.optional(design),
-    collectHours: v.number(),
-    voteHours: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const axes = args.axes.map((a) => a.trim()).filter(Boolean);
-    if (axes.length > 6) fail("判断軸は6つまでです");
-    axes.forEach((a) => text(a, "判断軸", 40, 1));
-    if (args.collectHours < 1 || args.collectHours > 336 || args.voteHours < 1 || args.voteHours > 168)
-      fail("期間の指定が正しくありません");
+const createArgs = {
+  hostName: v.string(),
+  title: v.string(),
+  theme: v.string(),
+  axes: v.array(v.string()),
+  tieMode: v.union(v.literal("manual"), v.literal("roulette")),
+  design: v.optional(design),
+  collectHours: v.number(),
+  voteHours: v.number(),
+};
 
-    let code = randomCode();
-    for (let i = 0; i < 5; i++) {
-      const dup = await ctx.db
-        .query("rooms")
-        .withIndex("by_code", (q) => q.eq("code", code))
-        .unique();
-      if (!dup) break;
-      code = randomCode();
-    }
-    const roomId = await ctx.db.insert("rooms", {
-      code,
-      title: text(args.title, "決めること", 60, 1),
-      theme: text(args.theme, "お題", 400),
-      axes,
-      tieMode: args.tieMode,
-      design: args.design ?? "simple",
-      collectDeadline: Date.now() + args.collectHours * HOUR,
-      voteHours: args.voteHours,
-      phase: "collecting",
-      round: 1,
-      participants: [],
-      shortlist: [],
-      excluded: [],
-      tieIds: [],
-      aiAttempts: 0,
-    });
-    const token = randomToken();
-    const memberId = await ctx.db.insert("members", {
-      roomId,
-      name: text(args.hostName, "名前", 30, 1),
-      tokenHash: await sha256(token),
-      isHost: true,
-      mustHaves: [],
-      ready: false,
-      assistCount: 0,
-    });
-    await scheduleCollectDeadline(ctx, (await ctx.db.get(roomId))!);
-    return { code, memberId, token };
+async function createRoom(
+  ctx: MutationCtx,
+  args: ObjectType<typeof createArgs>,
+  owner: { id?: Id<"users">; plan: PlanId },
+) {
+  const axes = args.axes.map((a) => a.trim()).filter(Boolean);
+  if (axes.length > 6) fail("判断軸は6つまでです");
+  axes.forEach((a) => text(a, "判断軸", 40, 1));
+  if (args.collectHours < 1 || args.collectHours > 336 || args.voteHours < 1 || args.voteHours > 168)
+    fail("期間の指定が正しくありません");
+
+  let code = randomCode();
+  for (let i = 0; i < 5; i++) {
+    const dup = await ctx.db
+      .query("rooms")
+      .withIndex("by_code", (q) => q.eq("code", code))
+      .unique();
+    if (!dup) break;
+    code = randomCode();
+  }
+  const roomId = await ctx.db.insert("rooms", {
+    ownerId: owner.id,
+    plan: owner.plan,
+    code,
+    title: text(args.title, "決めること", 60, 1),
+    theme: text(args.theme, "お題", 400),
+    axes,
+    tieMode: args.tieMode,
+    design: args.design ?? "simple",
+    collectDeadline: Date.now() + args.collectHours * HOUR,
+    voteHours: args.voteHours,
+    phase: "collecting",
+    round: 1,
+    participants: [],
+    shortlist: [],
+    excluded: [],
+    tieIds: [],
+    aiAttempts: 0,
+  });
+  const token = randomToken();
+  const memberId = await ctx.db.insert("members", {
+    roomId,
+    name: text(args.hostName, "名前", 30, 1),
+    tokenHash: await sha256(token),
+    isHost: true,
+    mustHaves: [],
+    ready: false,
+    assistCount: 0,
+  });
+  await scheduleCollectDeadline(ctx, (await ctx.db.get(roomId))!);
+  return { code, memberId, token };
+}
+
+export const create = mutation({
+  args: createArgs,
+  handler: async (ctx, args) => {
+    const ownerId = await getAuthUserId(ctx);
+    if (!ownerId) fail("会議を作るにはログインしてください");
+    const owner = await ctx.db.get(ownerId);
+    const planId = owner?.plan ?? DEFAULT_PLAN;
+    const plan = planOf(planId);
+    if ((await roomsCreatedToday(ctx, ownerId)) >= plan.roomsPerDay)
+      fail(`${plan.label}プランで会議を作れるのは1日${plan.roomsPerDay}つまでです。時間をおいてから作ってください`);
+    return createRoom(ctx, args, { id: ownerId, plan: planId });
+  },
+});
+
+export const createForTest = internalMutation({
+  args: createArgs,
+  handler: (ctx, args) => createRoom(ctx, args, { plan: DEFAULT_PLAN }),
+});
+
+export const myQuota = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+    const user = await ctx.db.get(userId);
+    const plan = planOf(user?.plan);
+    return { plan: plan.label, used: await roomsCreatedToday(ctx, userId), limit: plan.roomsPerDay };
   },
 });
 
@@ -109,7 +147,8 @@ export const join = mutation({
   handler: async (ctx, { code, name }) => {
     const room = await roomByCode(ctx, code);
     if (room.phase !== "collecting") fail("案の受付が終わったので、新しく参加できません");
-    if ((await membersOf(ctx, room._id)).length >= MAX_MEMBERS) fail(`参加できるのは${MAX_MEMBERS}人までです`);
+    const { maxMembers } = planOf(room.plan);
+    if ((await membersOf(ctx, room._id)).length >= maxMembers) fail(`この会議に参加できるのは${maxMembers}人までです`);
     const token = randomToken();
     const memberId = await ctx.db.insert("members", {
       roomId: room._id,
@@ -137,7 +176,8 @@ export const saveIdea = mutation({
       return;
     }
     const mine = (await ideasOf(ctx, room._id)).filter((i) => i.memberId === me._id);
-    if (mine.length >= MAX_IDEAS) fail(`案は1人${MAX_IDEAS}つまでです`);
+    const { maxIdeasPerMember } = planOf(room.plan);
+    if (mine.length >= maxIdeasPerMember) fail(`案は1人${maxIdeasPerMember}つまでです`);
     await ctx.db.insert("ideas", { roomId: room._id, memberId: me._id, round: 1, ...fields });
   },
 });
@@ -235,6 +275,60 @@ export const host = mutation({
   },
 });
 
+const stalled = (room: Doc<"rooms">) => room.aiAttempts >= AUTO_AI_ATTEMPTS;
+
+export const manualJudge = mutation({
+  args: {
+    ...session,
+    marks: v.array(
+      v.object({
+        ideaId: v.id("ideas"),
+        axisId: v.string(),
+        mark: v.union(v.literal("o"), v.literal("d"), v.literal("x")),
+      }),
+    ),
+  },
+  handler: async (ctx, { code, token, marks }) => {
+    const { room, me } = await auth(ctx, code, token);
+    if (!me.isHost) fail("ホストだけができる操作です");
+    requirePhase(room, "judging");
+    if (!stalled(room)) fail("AI の判定が止まっているときだけ、手動で判定できます");
+    const ideas = (await ideasOf(ctx, room._id)).filter((i) => i.round === room.round);
+    const axes = await axesOf(ctx, room);
+    const given = new Map(marks.map((m) => [`${m.ideaId}:${m.axisId}`, m.mark]));
+    const judged = [];
+    for (const idea of ideas) {
+      const row: Record<string, "o" | "d" | "x"> = {};
+      for (const axis of axes) {
+        const mark = given.get(`${idea._id}:${axis.id}`) ?? "d";
+        row[axis.id] = mark;
+        await ctx.db.insert("marks", {
+          roomId: room._id,
+          round: room.round,
+          ideaId: idea._id,
+          axisId: axis.id,
+          mark,
+          reason: "ホストが手動で判定",
+        });
+      }
+      judged.push({ ideaId: idea._id, marks: row });
+    }
+    await ctx.db.patch(room._id, { modelUsed: MANUAL_MODEL });
+    await openVoting(ctx, room, judged);
+  },
+});
+
+export const skipRevision = mutation({
+  args: session,
+  handler: async (ctx, { code, token }) => {
+    const { room, me } = await auth(ctx, code, token);
+    if (!me.isHost) fail("ホストだけができる操作です");
+    requirePhase(room, "revising");
+    if (!stalled(room)) fail("AI の改訂が止まっているときだけ使えます");
+    await decideWithoutRevision(ctx, room);
+  },
+});
+
 export const view = query({
   args: session,
   handler: async (ctx, { code, token }) => {
@@ -310,7 +404,7 @@ export const view = query({
         isHost: me.isHost,
         mustHaves: me.mustHaves,
         ready: me.ready,
-        assistLeft: Math.max(0, ASSIST_LIMIT - me.assistCount),
+        assistLeft: Math.max(0, planOf(room.plan).assistPerMember - me.assistCount),
       },
       members: ms.map((m) => ({
         id: m._id as string,

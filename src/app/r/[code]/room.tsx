@@ -24,6 +24,8 @@ function useAct(code: string, token: string) {
   const sendFeedback = useMutation(api.rooms.sendFeedback);
   const host = useMutation(api.rooms.host);
   const assist = useAction(api.ai.assist);
+  const manualJudge = useMutation(api.rooms.manualJudge);
+  const skipRevision = useMutation(api.rooms.skipRevision);
   return {
     saveIdea: (d: { id?: string; title: string; body: string }) =>
       saveIdea({
@@ -39,6 +41,9 @@ function useAct(code: string, token: string) {
     host: (action: "close" | "retry" | "pick", ideaId?: string) =>
       host({ ...s, action, ideaId: ideaId as Id<"ideas"> | undefined }),
     assist: (text: string) => assist({ ...s, text }),
+    manualJudge: (marks: { ideaId: string; axisId: string; mark: "o" | "d" | "x" }[]) =>
+      manualJudge({ ...s, marks: marks.map((m) => ({ ...m, ideaId: m.ideaId as Id<"ideas"> })) }),
+    skipRevision: () => skipRevision(s),
   };
 }
 

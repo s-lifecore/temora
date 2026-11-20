@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { ConvexHttpClient } from "convex/browser";
 import { anyApi } from "convex/server";
 
@@ -18,7 +19,8 @@ async function waitPhase(s, phases) {
   throw new Error(`timeout waiting for ${phases}`);
 }
 
-const host = await client.mutation(api.rooms.create, {
+// 会議の作成はログインが必要なので、テスト用の内部関数を CLI から呼ぶ
+const createArgs = {
   hostName: "メンバーA",
   title: "ハッカソンのテーマ決め",
   theme: "かゆいところに手が届くアプリ",
@@ -26,7 +28,13 @@ const host = await client.mutation(api.rooms.create, {
   tieMode: "roulette",
   collectHours: 24,
   voteHours: 24,
-});
+};
+const host = JSON.parse(
+  execFileSync("npx", ["convex", "run", "rooms:createForTest", JSON.stringify(createArgs)], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  }),
+);
 const code = host.code;
 console.log("room", code);
 const people = [host];

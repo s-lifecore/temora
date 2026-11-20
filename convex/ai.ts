@@ -161,6 +161,7 @@ export const judge = internalAction({
       if (aiMock()) {
         items = mockJudge(input.axes, input.ideas);
       } else {
+        if (!(await ctx.runMutation(internal.engine.claimAi, { roomId, phase: "judging", round }))) return;
         const ideaKey = new Map(input.ideas.map((idea, i) => [`I${i + 1}`, idea.id]));
         const axisKey = new Map(input.axes.map((axis, i) => [`A${i + 1}`, axis.id]));
         const res = await call(JudgeSchema, judgePrompt(input));
@@ -212,6 +213,7 @@ export const revise = internalAction({
           body: `${idea.body}\n変えた点: ${input.feedback[0] ?? "意見なし"}`,
         }));
       } else {
+        if (!(await ctx.runMutation(internal.engine.claimAi, { roomId, phase: "revising", round }))) return;
         const ideaKey = new Map(input.ideas.map((idea, i) => [`I${i + 1}`, idea.id]));
         const res = await call(
           ReviseSchema,

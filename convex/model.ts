@@ -2,20 +2,52 @@ import { ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { buildAxes, decide, shortlist, type MarkTable } from "../src/lib/rules";
+import { buildAxes, decide, shortlist, type MarkTable, type Outcome } from "../src/lib/rules";
 
 export const HOUR = 3_600_000;
 export const AUTO_AI_ATTEMPTS = 2;
 export const AI_RETRY_DELAY_MS = 5_000;
-export const ASSIST_LIMIT = 10;
-export const MAX_MEMBERS = 12;
-export const MAX_IDEAS = 5;
 export const DEFAULT_MODEL = "claude-haiku-5-5";
 export const MOCK_MODEL = "mock（見本の判定）";
 
 export const aiMock = () => process.env.AI_MOCK === "1";
 export const aiModel = () => process.env.AI_MODEL?.trim() || DEFAULT_MODEL;
 export const modelLabel = () => (aiMock() ? MOCK_MODEL : aiModel());
+
+export const MANUAL_MODEL = "手動（ホストが判定）";
+export const aiDailyLimit = () => {
+  const raw = process.env.AI_DAILY_LIMIT?.trim();
+  const n = Number(raw);
+  return raw && Number.isFinite(n) && n >= 0 ? n : 300;
+};
+export const AI_LIMIT_MESSAGE = "今日の AI の利用上限に達しました。ホストが手動で進められます";
+export const AI_LIMIT_ASSIST_MESSAGE = "今日の AI の利用上限に達しました。案は手で書いて出してください";
+
+const jstDay = (t = Date.now()) => new Date(t + 9 * HOUR).toISOString().slice(0, 10);
+
+export async function claimAiCall(ctx: MutationCtx): Promise<boolean> {
+  if (aiMock()) return true;
+  const day = jstDay();
+  const row = await ctx.db
+    .query("aiUsage")
+    .withIndex("by_day", (q) => q.eq("day", day))
+    .unique();
+  const count = row?.count ?? 0;
+  if (count >= aiDailyLimit()) return false;
+  if (row) await ctx.db.patch(row._id, { count: count + 1 });
+  else await ctx.db.insert("aiUsage", { day, count: 1 });
+  return true;
+}
+
+export async function roomsCreatedToday(ctx: QueryCtx, ownerId: Id<"users">): Promise<number> {
+  const since = Date.now() - 24 * HOUR;
+  const rooms = await ctx.db
+    .query("rooms")
+    .withIndex("by_owner", (q) => q.eq("ownerId", ownerId))
+    .order("desc")
+    .take(50);
+  return rooms.filter((r) => r._creationTime >= since).length;
+}
 
 export function fail(message: string): never {
   throw new ConvexError(message);
@@ -157,14 +189,7 @@ export async function openVoting(
   await scheduleDeadline(ctx, { ...room, phase: "voting" }, phaseDeadline);
 }
 
-export async function closeVoting(ctx: MutationCtx, room: Doc<"rooms">) {
-  if (room.phase !== "voting") return;
-  const votes = await votesOf(ctx, room._id, room.round);
-  const outcome = decide(
-    room.shortlist,
-    votes.map((v) => ({ memberId: v.memberId, approved: v.approved })),
-    room.round >= 2,
-  );
+export async function applyOutcome(ctx: MutationCtx, room: Doc<"rooms">, outcome: Outcome) {
   if (outcome.kind === "decided") {
     await ctx.db.patch(room._id, {
       phase: "decided",
@@ -192,6 +217,26 @@ export async function closeVoting(ctx: MutationCtx, room: Doc<"rooms">) {
   const phaseDeadline = Date.now() + room.voteHours * HOUR;
   await ctx.db.patch(room._id, { phase: "feedback", phaseDeadline });
   await scheduleDeadline(ctx, { ...room, phase: "feedback" }, phaseDeadline);
+}
+
+async function decideRound(ctx: MutationCtx, room: Doc<"rooms">, finalRound: boolean) {
+  const votes = await votesOf(ctx, room._id, room.round);
+  const outcome = decide(
+    room.shortlist,
+    votes.map((v) => ({ memberId: v.memberId, approved: v.approved })),
+    finalRound,
+  );
+  await applyOutcome(ctx, room, outcome);
+}
+
+export async function closeVoting(ctx: MutationCtx, room: Doc<"rooms">) {
+  if (room.phase !== "voting") return;
+  await decideRound(ctx, room, room.round >= 2);
+}
+
+export async function decideWithoutRevision(ctx: MutationCtx, room: Doc<"rooms">) {
+  if (room.phase !== "revising") return;
+  await decideRound(ctx, room, true);
 }
 
 export async function maybeCloseVoting(ctx: MutationCtx, room: Doc<"rooms">) {
