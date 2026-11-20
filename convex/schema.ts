@@ -13,6 +13,8 @@ export const phase = v.union(
 
 export const mark = v.union(v.literal("o"), v.literal("d"), v.literal("x"));
 
+export const design = v.union(v.literal("simple"), v.literal("fun"), v.literal("calm"), v.literal("cool"));
+
 export default defineSchema({
   rooms: defineTable({
     code: v.string(),
@@ -20,6 +22,7 @@ export default defineSchema({
     theme: v.string(),
     axes: v.array(v.string()),
     tieMode: v.union(v.literal("manual"), v.literal("roulette")),
+    design: v.optional(design),
     collectDeadline: v.number(),
     voteHours: v.number(),
     phase,

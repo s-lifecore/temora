@@ -29,6 +29,7 @@ import {
   text,
 } from "./model";
 import { MAX_MUST_HAVES, tally, threshold } from "../src/lib/rules";
+import { design } from "./schema";
 
 const session = { code: v.string(), token: v.string() };
 
@@ -39,6 +40,7 @@ export const create = mutation({
     theme: v.string(),
     axes: v.array(v.string()),
     tieMode: v.union(v.literal("manual"), v.literal("roulette")),
+    design: v.optional(design),
     collectHours: v.number(),
     voteHours: v.number(),
   },
@@ -63,6 +65,7 @@ export const create = mutation({
       theme: text(args.theme, "お題", 400),
       axes,
       tieMode: args.tieMode,
+      design: args.design ?? "simple",
       collectDeadline: Date.now() + args.collectHours * HOUR,
       voteHours: args.voteHours,
       phase: "collecting",
@@ -96,7 +99,7 @@ export const joinInfo = query({
       .withIndex("by_code", (q) => q.eq("code", code.toUpperCase()))
       .unique();
     if (!room) return null;
-    return { title: room.title, theme: room.theme, open: room.phase === "collecting" };
+    return { title: room.title, theme: room.theme, design: room.design ?? "simple", open: room.phase === "collecting" };
   },
 });
 
@@ -285,6 +288,7 @@ export const view = query({
         theme: room.theme,
         teamAxes: room.axes,
         tieMode: room.tieMode,
+        design: room.design ?? "simple",
         collectDeadline: room.collectDeadline,
         voteHours: room.voteHours,
         phase: room.phase,

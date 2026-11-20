@@ -81,3 +81,167 @@ body {
 .cell-pop {
   animation: pop 0.35s ease-out both;
 }
+
+/* ---------- デザイン（会議ごとにホストが選ぶ） ---------- */
+
+[data-design] {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+[data-design="fun"] {
+  --bg: #fff6e0;
+  --card: #ffffff;
+  --fg: #2b2118;
+  --muted: #7a6a58;
+  --line: #2b2118;
+  --accent: #ff5d3a;
+  --accent-soft: #ffe2d6;
+  --o: #14965a;
+  --d: #e39b00;
+  --x: #e5383b;
+  font-family: var(--font-maru), "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  background-image: radial-gradient(#f3d9a4 1.4px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+[data-design="fun"] .card {
+  border-width: 2px;
+  border-radius: 1.5rem;
+  box-shadow: 5px 5px 0 var(--fg);
+}
+[data-design="fun"] .btn,
+[data-design="fun"] .btn-ghost {
+  border: 2px solid var(--fg);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--fg);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+[data-design="fun"] .btn:not(:disabled):hover,
+[data-design="fun"] .btn-ghost:not(:disabled):hover {
+  transform: translate(-1px, -2px) rotate(-1deg);
+  box-shadow: 4px 5px 0 var(--fg);
+}
+[data-design="fun"] .btn:not(:disabled):active,
+[data-design="fun"] .btn-ghost:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--fg);
+}
+[data-design="fun"] .btn {
+  color: #fff;
+}
+[data-design="fun"] .input {
+  border-width: 2px;
+  border-radius: 1rem;
+  background: #fffdf7;
+}
+[data-design="fun"] h1,
+[data-design="fun"] h2 {
+  letter-spacing: 0.02em;
+}
+[data-design="fun"] .cell-pop {
+  animation: pop-fun 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pop-fun {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-25deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+[data-design="calm"] {
+  --bg: #f3efe6;
+  --card: #fbf9f4;
+  --fg: #2a2724;
+  --muted: #7d766b;
+  --line: #ddd5c6;
+  --accent: #34477a;
+  --accent-soft: #e5e8f0;
+  --o: #3d6b4f;
+  --d: #9a7a2e;
+  --x: #9b3d36;
+  font-family: var(--font-mincho), "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+[data-design="calm"] .card {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 0 rgba(42, 39, 36, 0.04);
+}
+[data-design="calm"] .btn,
+[data-design="calm"] .btn-ghost,
+[data-design="calm"] .input {
+  border-radius: 0.375rem;
+}
+[data-design="calm"] h1 {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+[data-design="calm"] .cell-pop {
+  animation: fade-calm 0.6s ease-out both;
+}
+@keyframes fade-calm {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-design="cool"] {
+  --bg: #0b1018;
+  --card: #121a26;
+  --fg: #e6edf5;
+  --muted: #8b98aa;
+  --line: #233044;
+  --accent: #2dd4bf;
+  --accent-soft: #10302f;
+  --o: #34d399;
+  --d: #fbbf24;
+  --x: #fb7185;
+  background-image: radial-gradient(1200px 500px at 50% -10%, rgba(45, 212, 191, 0.12), transparent 60%);
+  background-attachment: fixed;
+}
+[data-design="cool"] .card {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.04), 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+[data-design="cool"] .btn {
+  color: #06201d;
+  box-shadow: 0 0 18px rgba(45, 212, 191, 0.35);
+}
+[data-design="cool"] .cell-pop {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* 紙吹雪（楽しい） */
+.confetti {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 50;
+}
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  to {
+    transform: translate3d(var(--dx), 110vh, 0) rotate(var(--rot));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell-pop {
+    animation: none !important;
+  }
+  .confetti {
+    display: none;
+  }
+}
