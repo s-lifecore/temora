@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { STEP_ICONS } from "@/lib/designs";
+import { formatDateTime } from "@/lib/time";
 import type { RoomView } from "./room";
 
 const STEPS = [
@@ -26,6 +27,12 @@ export function useNow(ms = 1000) {
   }, [ms]);
   return now;
 }
+
+const DEADLINE_LABEL: Partial<Record<RoomView["room"]["phase"], string>> = {
+  collecting: "案の締切",
+  voting: "承認の締切",
+  feedback: "意見の締切",
+};
 
 export function remaining(deadline: number | null, now: number): string {
   if (!deadline) return "";
@@ -81,7 +88,11 @@ export function Header({ view }: { view: RoomView }) {
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         {room.round > 1 && room.phase !== "decided" && <span className="font-semibold text-d">2回目（やり直し）</span>}
-        {deadline && room.phase !== "decided" && <span>締切 {remaining(deadline, now)}</span>}
+        {deadline && DEADLINE_LABEL[room.phase] && (
+          <span>
+            {DEADLINE_LABEL[room.phase]} {formatDateTime(deadline)}（{remaining(deadline, now)}）
+          </span>
+        )}
         <span>
           AI判定: <span className="font-mono">{room.model}</span>
           （全員共通・サーバーで実行）

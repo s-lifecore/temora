@@ -26,7 +26,7 @@ const createArgs = {
   theme: "かゆいところに手が届くアプリ",
   axes: ["スマホで動く", "2日で作れる", "デモ映えする"],
   tieMode: "roulette",
-  collectHours: 24,
+  collectDeadline: Date.now() + 24 * 3_600_000,
   voteHours: 24,
 };
 const host = JSON.parse(

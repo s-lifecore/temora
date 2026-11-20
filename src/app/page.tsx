@@ -8,48 +8,16 @@ import { useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { errorText, saveSession } from "@/lib/client";
 import { DEFAULT_DESIGN, DESIGNS, type Design } from "@/lib/designs";
+import { formatDateTime, nextHour, toLocalInput } from "@/lib/time";
 
 export default function Home() {
   const router = useRouter();
-  const createRoom = useMutation(api.rooms.create);
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
   const [joinCode, setJoinCode] = useState("");
-  const [form, setForm] = useState({
-    hostName: "",
-    title: "",
-    theme: "",
-    axes: "スマホで動く\n期限までに作れる",
-    tieMode: "roulette" as "roulette" | "manual",
-    design: DEFAULT_DESIGN as Design,
-    collectHours: 24,
-    voteHours: 24,
-  });
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function create(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      const res = await createRoom({
-        ...form,
-        axes: form.axes
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      });
-      saveSession(res.code, { memberId: res.memberId, token: res.token });
-      router.push(`/r/${res.code}`);
-    } catch (err) {
-      setError(errorText(err));
-      setBusy(false);
-    }
-  }
+  const [design, setDesign] = useState<Design>(DEFAULT_DESIGN);
 
   return (
-    <div data-design={form.design} className="min-h-screen">
+    <div data-design={design} className="min-h-screen">
       <main className="mx-auto max-w-xl px-4 py-10">
         <header className="mb-8">
           <p className="text-sm font-semibold text-accent">
@@ -84,158 +52,7 @@ export default function Home() {
           </form>
         </section>
 
-        {!isAuthenticated ? (
-          <SignInCard loading={isLoading} />
-        ) : (
-          <form className="card space-y-5" onSubmit={create}>
-            <h2 className="font-bold">ホストとして会議を作る</h2>
-            <Account />
-            <div>
-              <label className="label" htmlFor="f3">
-                あなたの名前
-              </label>
-              <input
-                id="f3"
-                className="input"
-                required
-                maxLength={30}
-                value={form.hostName}
-                onChange={(e) => set("hostName", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label" htmlFor="f1">
-                何を決める？
-              </label>
-              <input
-                id="f1"
-                className="input"
-                required
-                maxLength={60}
-                placeholder="例：ハッカソンで作るもの"
-                value={form.title}
-                onChange={(e) => set("title", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label" htmlFor="f2">
-                お題・前提（任意）
-              </label>
-              <textarea
-                id="f2"
-                className="input min-h-20"
-                maxLength={400}
-                placeholder="例：テーマは「かゆいところに手が届くアプリ」。開発期間は2日。"
-                value={form.theme}
-                onChange={(e) => set("theme", e.target.value)}
-              />
-            </div>
-            <fieldset>
-              <legend className="label">ページのデザイン</legend>
-              <div className="grid grid-cols-2 gap-2">
-                {DESIGNS.map((d) => (
-                  <label
-                    key={d.id}
-                    className={`cursor-pointer rounded-xl border-2 p-2 text-sm transition ${form.design === d.id ? "border-accent" : "border-transparent"}`}
-                  >
-                    <input
-                      type="radio"
-                      name="design"
-                      className="sr-only"
-                      checked={form.design === d.id}
-                      onChange={() => set("design", d.id)}
-                    />
-                    <DesignSwatch design={d.id} />
-                    <span className="mt-1.5 block font-semibold">
-                      {d.label}
-                      {d.id === DEFAULT_DESIGN && <span className="ml-1 text-xs font-normal text-muted">（標準）</span>}
-                    </span>
-                    <span className="hint block leading-snug">{d.desc}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="hint mt-1.5">参加者全員の画面がこのデザインになります。選ぶとこのページで試せます。</p>
-            </fieldset>
-            <div>
-              <label className="label" htmlFor="f4">
-                チーム共通の判断軸（1行に1つ、最大6つ）
-              </label>
-              <textarea
-                id="f4"
-                className="input min-h-24"
-                value={form.axes}
-                onChange={(e) => set("axes", e.target.value)}
-              />
-              <p className="hint mt-1">各メンバーの「譲れない条件」は、参加したあとにそれぞれが追加します。</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label" htmlFor="f5">
-                  案の締切
-                </label>
-                <select
-                  id="f5"
-                  className="input"
-                  value={form.collectHours}
-                  onChange={(e) => set("collectHours", Number(e.target.value))}
-                >
-                  {[3, 12, 24, 48, 72, 168].map((h) => (
-                    <option key={h} value={h}>
-                      {h < 24 ? `${h}時間後` : `${h / 24}日後`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="f6">
-                  承認の期間
-                </label>
-                <select
-                  id="f6"
-                  className="input"
-                  value={form.voteHours}
-                  onChange={(e) => set("voteHours", Number(e.target.value))}
-                >
-                  {[3, 12, 24, 48, 72].map((h) => (
-                    <option key={h} value={h}>
-                      {h < 24 ? `${h}時間` : `${h / 24}日`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <fieldset>
-              <legend className="label">最多票が同数になったら</legend>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {(
-                  [
-                    ["roulette", "ルーレットで決める", "同数の案から公平にランダムで選ぶ"],
-                    ["manual", "ホストが決める", "同数の案の中からホストが選ぶ"],
-                  ] as const
-                ).map(([v, label, desc]) => (
-                  <label
-                    key={v}
-                    className={`cursor-pointer rounded-xl border p-3 text-sm ${form.tieMode === v ? "border-accent bg-accent-soft" : "border-line"}`}
-                  >
-                    <input
-                      type="radio"
-                      className="sr-only"
-                      checked={form.tieMode === v}
-                      onChange={() => set("tieMode", v)}
-                    />
-                    <span className="font-semibold">{label}</span>
-                    <span className="hint mt-0.5 block">{desc}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="hint mt-1.5">結果を見てから選べないように、ここで先に決めておきます。</p>
-            </fieldset>
-            {error && <p className="text-sm text-x">{error}</p>}
-            <button className="btn w-full" disabled={busy}>
-              {busy ? "作成中…" : "会議を作る"}
-            </button>
-          </form>
-        )}
+        {!isAuthenticated ? <SignInCard loading={isLoading} /> : <CreateForm design={design} onDesign={setDesign} />}
       </main>
     </div>
   );
@@ -352,6 +169,194 @@ function DesignSwatch({ design }: { design: Design }) {
         </span>
       </span>
     </span>
+  );
+}
+
+function CreateForm({ design, onDesign }: { design: Design; onDesign: (d: Design) => void }) {
+  const router = useRouter();
+  const createRoom = useMutation(api.rooms.create);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [minAt] = useState(() => toLocalInput(Date.now()));
+  const [form, setForm] = useState(() => ({
+    hostName: "",
+    title: "",
+    theme: "",
+    axes: "スマホで動く\n期限までに作れる",
+    tieMode: "roulette" as "roulette" | "manual",
+    collectAt: toLocalInput(nextHour(Date.now(), 24)),
+    voteHours: 24,
+  }));
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const { collectAt, ...rest } = form;
+      const res = await createRoom({
+        ...rest,
+        design,
+        collectDeadline: new Date(collectAt).getTime(),
+        axes: form.axes
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      });
+      saveSession(res.code, { memberId: res.memberId, token: res.token });
+      router.push(`/r/${res.code}`);
+    } catch (err) {
+      setError(errorText(err));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="card space-y-5" onSubmit={create}>
+      <h2 className="font-bold">ホストとして会議を作る</h2>
+      <Account />
+      <div>
+        <label className="label" htmlFor="f3">
+          あなたの名前
+        </label>
+        <input
+          id="f3"
+          className="input"
+          required
+          maxLength={30}
+          value={form.hostName}
+          onChange={(e) => set("hostName", e.target.value)}
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="f1">
+          何を決める？
+        </label>
+        <input
+          id="f1"
+          className="input"
+          required
+          maxLength={60}
+          placeholder="例：ハッカソンで作るもの"
+          value={form.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="f2">
+          お題・前提（任意）
+        </label>
+        <textarea
+          id="f2"
+          className="input min-h-20"
+          maxLength={400}
+          placeholder="例：テーマは「かゆいところに手が届くアプリ」。開発期間は2日。"
+          value={form.theme}
+          onChange={(e) => set("theme", e.target.value)}
+        />
+      </div>
+      <fieldset>
+        <legend className="label">ページのデザイン</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {DESIGNS.map((d) => (
+            <label
+              key={d.id}
+              className={`cursor-pointer rounded-xl border-2 p-2 text-sm transition ${design === d.id ? "border-accent" : "border-transparent"}`}
+            >
+              <input
+                type="radio"
+                name="design"
+                className="sr-only"
+                checked={design === d.id}
+                onChange={() => onDesign(d.id)}
+              />
+              <DesignSwatch design={d.id} />
+              <span className="mt-1.5 block font-semibold">
+                {d.label}
+                {d.id === DEFAULT_DESIGN && <span className="ml-1 text-xs font-normal text-muted">（標準）</span>}
+              </span>
+              <span className="hint block leading-snug">{d.desc}</span>
+            </label>
+          ))}
+        </div>
+        <p className="hint mt-1.5">参加者全員の画面がこのデザインになります。選ぶとこのページで試せます。</p>
+      </fieldset>
+      <div>
+        <label className="label" htmlFor="f4">
+          チーム共通の判断軸（1行に1つ、最大6つ）
+        </label>
+        <textarea id="f4" className="input min-h-24" value={form.axes} onChange={(e) => set("axes", e.target.value)} />
+        <p className="hint mt-1">各メンバーの「譲れない条件」は、参加したあとにそれぞれが追加します。</p>
+      </div>
+      <div>
+        <label className="label" htmlFor="f5">
+          案の締切
+        </label>
+        <input
+          id="f5"
+          type="datetime-local"
+          className="input"
+          required
+          min={minAt}
+          value={form.collectAt}
+          onChange={(e) => set("collectAt", e.target.value)}
+        />
+        <p className="hint mt-1">この日時までに各自が案を出します。全員が提出すれば、締切前でも次に進みます。</p>
+      </div>
+      <div>
+        <label className="label" htmlFor="f6">
+          承認を受け付ける時間
+        </label>
+        <select
+          id="f6"
+          className="input"
+          value={form.voteHours}
+          onChange={(e) => set("voteHours", Number(e.target.value))}
+        >
+          {[3, 12, 24, 48, 72].map((h) => (
+            <option key={h} value={h}>
+              候補が出てから {h < 24 ? `${h}時間` : `${h / 24}日`}
+            </option>
+          ))}
+        </select>
+        <p className="hint mt-1">
+          AI が候補を出したあと、全員が「これならいい」を付けるまでの時間です。全員が付ければ早く終わります。
+          {Number.isFinite(new Date(form.collectAt).getTime()) && (
+            <>
+              {" "}
+              目安：案の締切 {formatDateTime(new Date(form.collectAt).getTime())} → 承認の締切{" "}
+              {formatDateTime(new Date(form.collectAt).getTime() + form.voteHours * 3_600_000)} ごろ
+            </>
+          )}
+        </p>
+      </div>
+      <fieldset>
+        <legend className="label">最多票が同数になったら</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(
+            [
+              ["roulette", "ルーレットで決める", "同数の案から公平にランダムで選ぶ"],
+              ["manual", "ホストが決める", "同数の案の中からホストが選ぶ"],
+            ] as const
+          ).map(([v, label, desc]) => (
+            <label
+              key={v}
+              className={`cursor-pointer rounded-xl border p-3 text-sm ${form.tieMode === v ? "border-accent bg-accent-soft" : "border-line"}`}
+            >
+              <input type="radio" className="sr-only" checked={form.tieMode === v} onChange={() => set("tieMode", v)} />
+              <span className="font-semibold">{label}</span>
+              <span className="hint mt-0.5 block">{desc}</span>
+            </label>
+          ))}
+        </div>
+        <p className="hint mt-1.5">結果を見てから選べないように、ここで先に決めておきます。</p>
+      </fieldset>
+      {error && <p className="text-sm text-x">{error}</p>}
+      <button className="btn w-full" disabled={busy}>
+        {busy ? "作成中…" : "会議を作る"}
+      </button>
+    </form>
   );
 }
 

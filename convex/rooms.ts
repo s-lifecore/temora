@@ -43,7 +43,7 @@ const createArgs = {
   axes: v.array(v.string()),
   tieMode: v.union(v.literal("manual"), v.literal("roulette")),
   design: v.optional(design),
-  collectHours: v.number(),
+  collectDeadline: v.number(),
   voteHours: v.number(),
 };
 
@@ -55,8 +55,11 @@ async function createRoom(
   const axes = args.axes.map((a) => a.trim()).filter(Boolean);
   if (axes.length > 6) fail("判断軸は6つまでです");
   axes.forEach((a) => text(a, "判断軸", 40, 1));
-  if (args.collectHours < 1 || args.collectHours > 336 || args.voteHours < 1 || args.voteHours > 168)
-    fail("期間の指定が正しくありません");
+  const now = Date.now();
+  if (!Number.isFinite(args.collectDeadline) || args.collectDeadline < now + 10 * 60_000)
+    fail("案の締切は、今から10分以上あとの日時にしてください");
+  if (args.collectDeadline > now + 14 * 24 * HOUR) fail("案の締切は、2週間以内の日時にしてください");
+  if (args.voteHours < 1 || args.voteHours > 168) fail("承認を受け付ける時間の指定が正しくありません");
 
   let code = randomCode();
   for (let i = 0; i < 5; i++) {
@@ -76,7 +79,7 @@ async function createRoom(
     axes,
     tieMode: args.tieMode,
     design: args.design ?? "simple",
-    collectDeadline: Date.now() + args.collectHours * HOUR,
+    collectDeadline: args.collectDeadline,
     voteHours: args.voteHours,
     phase: "collecting",
     round: 1,
