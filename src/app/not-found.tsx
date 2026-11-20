@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ThemeDecor, ThemeDecorPeek } from "./theme-decor";
 
 export const metadata: Metadata = {
-  title: "ページが見つかりません | Temora",
+  title: "ページが見つかりません",
   robots: { index: false, follow: false },
 };
 

@@ -4,8 +4,11 @@ import { supportUrl } from "@/lib/support";
 import { ThemeDecor, ThemeDecorPeek } from "../theme-decor";
 
 export const metadata: Metadata = {
-  title: "Temora を応援する",
-  description: "Temora を無料で使い続けてもらうための応援について",
+  title: "応援する",
+  description:
+    "Temora を無料で使い続けてもらうための応援について。なぜ応援が必要か、応援を何に使うかを説明しています。",
+  alternates: { canonical: "/support" },
+  openGraph: { url: "/support", title: "Temora を応援する" },
 };
 
 const USES = [

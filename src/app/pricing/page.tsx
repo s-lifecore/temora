@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Configurator } from "./configurator";
 
 export const metadata: Metadata = {
-  title: "料金の試作 | Temora",
+  title: "料金の試作",
   robots: { index: false, follow: false },
 };
 

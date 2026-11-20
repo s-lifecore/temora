@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Room } from "./room";
+
+// 会議の画面には利用者の案が載るので、検索エンジンに載せない
+export const metadata: Metadata = {
+  title: "会議",
+  robots: { index: false, follow: false },
+};
 
 export default function Page({ params }: PageProps<"/r/[code]">) {
   return (
